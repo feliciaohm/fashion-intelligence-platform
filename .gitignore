@@ -33,9 +33,24 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# secrets / service account keys / integration credentials
+key.json
+.credentials/
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local scratch / stray files not part of the deployed app -- the app reads
+# live from BigQuery, not from this raw CSV, and the app doesn't read from
+# R/ or the notebook file either; left on disk but not pushed to GitHub
+influencer_data.csv
+package-lock 2.json
+package-lock 3.json
+influencer-dashboard:notebooks:test.ipynb
+
+# local Claude Code tooling config, not part of the product
+.claude/

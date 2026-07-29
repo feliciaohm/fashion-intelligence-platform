@@ -1,66 +1,59 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+import { useEffect, useState } from "react";
+import RoleSelector from "@/components/RoleSelector";
+import RoleHome from "@/components/RoleHome";
+import { getStoredRole, setStoredRole, ROLES, ROLE_CHANGE_EVENT, RoleId } from "@/lib/roles";
+
+export default function LandingPage() {
+  const [role, setRole] = useState<RoleId | null | undefined>(undefined);
+  const [journey, setJourney] = useState<any[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const sync = () => {
+      getStoredRole().then((r) => {
+        if (!cancelled) setRole(r);
+      });
+    };
+    sync();
+    fetch("/api/influencer-journey")
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setJourney)
+      .catch(() => setJourney([]));
+
+    // The Nav's role switcher also updates the stored role -- when that
+    // happens while already on "/", there's no navigation to re-trigger this
+    // effect, so this component would never otherwise learn the role
+    // changed. Listen for the same event Nav dispatches.
+    window.addEventListener(ROLE_CHANGE_EVENT, sync);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(ROLE_CHANGE_EVENT, sync);
+    };
+  }, []);
+
+  function selectRole(id: RoleId) {
+    setRole(id);
+    setStoredRole(id);
+  }
+
+  function switchRole() {
+    setRole(null);
+    setStoredRole(null);
+  }
+
+  // Undetermined yet (first paint, before the Supabase read completes) --
+  // render nothing rather than flashing the role picker and then swapping to
+  // the saved role a moment later.
+  if (role === undefined) {
+    return null;
+  }
+
+  if (role === null) {
+    return <RoleSelector onSelect={selectRole} />;
+  }
+
+  const config = ROLES.find((r) => r.id === role)!;
+  return <RoleHome role={config} journey={journey} onSwitchRole={switchRole} />;
 }
