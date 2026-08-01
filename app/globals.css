@@ -901,41 +901,65 @@ input[type="password"]:focus {
 .login-page {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 40px 24px;
   background: var(--color-bg);
 }
 
-.login-card {
-  width: 100%;
-  max-width: 400px;
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border);
-  padding: 40px;
+.login-mark {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 56px;
 }
 
-.login-eyebrow {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--color-accent);
-  margin-bottom: 12px;
+.login-mark-glyph {
+  width: 26px;
+  height: 26px;
+  background: var(--color-ink);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.login-mark-glyph::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 13px;
+  height: 13px;
+  background: var(--color-accent);
+}
+
+.login-mark-text {
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
 }
 
 .login-title {
-  font-size: 28px;
+  font-size: 21px;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   color: var(--color-ink);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .login-subtitle {
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1.6;
   color: var(--color-ink-secondary);
-  margin-bottom: 28px;
+  margin-bottom: 36px;
 }
 
 .login-google-btn {
@@ -944,27 +968,54 @@ input[type="password"]:focus {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 12px 16px;
+  padding: 13px 16px;
   font-family: var(--font-inter), -apple-system, "Segoe UI", sans-serif;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-bg-elevated);
-  color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  background: var(--color-ink);
+  color: #fffdf9;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
 .login-google-btn:hover {
-  border-color: var(--color-accent);
-  background: var(--color-accent-soft);
+  opacity: 0.82;
+}
+
+.login-google-btn .login-google-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.login-email-toggle {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 18px;
+  font-size: 12.5px;
+  color: var(--color-ink-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.login-email-toggle:hover {
+  color: var(--color-accent);
 }
 
 .login-divider {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 24px 0;
+  margin: 28px 0 22px;
   color: var(--color-ink-muted);
   font-size: 11px;
   text-transform: uppercase;
@@ -982,7 +1033,8 @@ input[type="password"]:focus {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  text-align: left;
 }
 
 .login-label {
@@ -999,12 +1051,14 @@ input[type="password"]:focus {
   font-size: 12.5px;
   color: var(--status-critical);
   margin: 0;
+  text-align: left;
 }
 
 .login-message {
   font-size: 12.5px;
   color: var(--color-accent);
   margin: 0;
+  text-align: left;
 }
 
 .login-mode-toggle {
@@ -1023,6 +1077,97 @@ input[type="password"]:focus {
 
 .login-mode-toggle:hover {
   color: var(--color-accent);
+}
+
+.login-back-toggle {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--color-ink-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.login-back-toggle:hover {
+  color: var(--color-accent);
+}
+
+/* ---------- Onboarding (first-login role setup) ---------- */
+
+.onboarding-card {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.onboarding-radio-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.onboarding-radio-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.onboarding-radio-item:hover {
+  background: var(--color-bg-sunken);
+}
+
+.onboarding-radio-item input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.onboarding-radio-dot {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border-strong);
+  position: relative;
+  transition: border-color 0.12s ease;
+}
+
+.onboarding-radio-dot::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  transform: scale(0);
+  transition: transform 0.12s ease;
+}
+
+.onboarding-radio-item input:checked ~ .onboarding-radio-dot {
+  border-color: var(--color-ink);
+}
+
+.onboarding-radio-item input:checked ~ .onboarding-radio-dot::after {
+  transform: scale(1);
+}
+
+.onboarding-radio-item input:focus-visible ~ .onboarding-radio-dot {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.onboarding-radio-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
 }
 
 button.btn {
@@ -1050,7 +1195,8 @@ button.btn:disabled {
   cursor: default;
 }
 
-button.btn-ghost {
+.btn-ghost {
+  display: inline-block;
   font-family: var(--font-inter), -apple-system, "Segoe UI", sans-serif;
   font-size: 10.5px;
   font-weight: 600;
@@ -1062,10 +1208,11 @@ button.btn-ghost {
   background: var(--color-bg-elevated);
   color: var(--color-ink-secondary);
   cursor: pointer;
+  text-decoration: none;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-button.btn-ghost:hover {
+.btn-ghost:hover {
   border-color: var(--color-accent);
   color: var(--color-accent);
 }

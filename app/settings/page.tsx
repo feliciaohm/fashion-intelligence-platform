@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ExcelUploadZone from "@/components/ExcelUploadZone";
 import RelatedPages from "@/components/RelatedPages";
 import TotpSettings from "@/components/TotpSettings";
+import RoleSettings from "@/components/RoleSettings";
 import { INTEGRATION_META, INTEGRATION_ORDER, IntegrationStatus } from "@/lib/integrations";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 
@@ -272,6 +273,12 @@ export default function SettingsPage() {
       <hr className="doc-header-rule" />
 
       {kpis.length === 3 && <KpiStrip items={kpis} />}
+
+      <div className="section">
+        <h2 className="section-title">Role</h2>
+        <p className="section-subtitle">Which modules open first on your home page.</p>
+        <RoleSettings />
+      </div>
 
       {!statuses ? (
         <p className="text-muted section">Loading integration status…</p>

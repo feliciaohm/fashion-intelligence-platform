@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import RoleSelector from "@/components/RoleSelector";
+import { useRouter } from "next/navigation";
 import RoleHome from "@/components/RoleHome";
-import { getStoredRole, setStoredRole, ROLES, ROLE_CHANGE_EVENT, RoleId } from "@/lib/roles";
+import { getStoredRole, ROLES, ROLE_CHANGE_EVENT, RoleId } from "@/lib/roles";
 
 export default function LandingPage() {
+  const router = useRouter();
+  // proxy.ts guarantees a role is set in the profile before this page is ever
+  // reached -- undefined here is only ever the brief instant before the
+  // first Supabase read resolves, never "no role" (that's /onboarding's job).
   const [role, setRole] = useState<RoleId | null | undefined>(undefined);
   const [journey, setJourney] = useState<any[]>([]);
 
@@ -33,27 +37,17 @@ export default function LandingPage() {
     };
   }, []);
 
-  function selectRole(id: RoleId) {
-    setRole(id);
-    setStoredRole(id);
-  }
+  // Defensive only -- e.g. a role cleared directly in the database. Send the
+  // user back through the real onboarding flow rather than rendering a
+  // broken home page.
+  useEffect(() => {
+    if (role === null) router.push("/onboarding");
+  }, [role, router]);
 
-  function switchRole() {
-    setRole(null);
-    setStoredRole(null);
-  }
-
-  // Undetermined yet (first paint, before the Supabase read completes) --
-  // render nothing rather than flashing the role picker and then swapping to
-  // the saved role a moment later.
-  if (role === undefined) {
+  if (role === undefined || role === null) {
     return null;
   }
 
-  if (role === null) {
-    return <RoleSelector onSelect={selectRole} />;
-  }
-
   const config = ROLES.find((r) => r.id === role)!;
-  return <RoleHome role={config} journey={journey} onSwitchRole={switchRole} />;
+  return <RoleHome role={config} journey={journey} />;
 }

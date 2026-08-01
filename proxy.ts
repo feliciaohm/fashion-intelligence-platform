@@ -9,6 +9,10 @@
 //      before letting the session through anywhere else. Without this step,
 //      enrolling in 2FA would be purely decorative -- a stolen password
 //      alone would still produce a fully valid session.
+//   4. If the profile has no role set yet, force a stop at /onboarding --
+//      first login only, once. Role is a personalization preference, not an
+//      access boundary, so /api/* is exempt (data access never depends on
+//      it); only page navigation is gated.
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
@@ -69,6 +73,22 @@ export async function proxy(request: NextRequest) {
   // Fully authenticated -- an auth page has nothing left to do here.
   if (path === "/login" || path.startsWith("/login/verify")) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  if (!path.startsWith("/api/")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    const hasRole = !!profile?.role;
+
+    if (!hasRole && path !== "/onboarding") {
+      return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
+    if (hasRole && path === "/onboarding") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
 
   return response;

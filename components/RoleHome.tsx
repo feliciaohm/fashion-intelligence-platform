@@ -16,11 +16,9 @@ function pctDelta(oldVal: number, newVal: number): number | null {
 export default function RoleHome({
   role,
   journey,
-  onSwitchRole,
 }: {
   role: RoleConfig;
   journey: any[];
-  onSwitchRole: () => void;
 }) {
   const totalRevenue = journey.reduce((s: number, r: any) => s + (r.revenue_attributed || 0), 0);
   const totalFirstVisitors = journey.reduce((s: number, r: any) => s + (r.first_visitors_48h || 0), 0);
@@ -76,9 +74,9 @@ export default function RoleHome({
     <div>
       <div className="page-meta no-print">
         <span>Welcome back</span>
-        <button type="button" className="btn-ghost" onClick={onSwitchRole}>
-          Switch role
-        </button>
+        <Link href="/settings" className="btn-ghost">
+          Change role
+        </Link>
       </div>
       <div className="page-eyebrow">Overview · {role.label} Home</div>
       <h1 className="page-title" style={{ fontSize: 34 }}>

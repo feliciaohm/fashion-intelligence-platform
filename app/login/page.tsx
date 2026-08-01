@@ -21,6 +21,7 @@ function LoginForm() {
   const next = searchParams.get("next") || "/";
 
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -76,66 +77,98 @@ function LoginForm() {
 
   return (
     <div className="login-page">
+      <div className="login-mark">
+        <div className="login-mark-glyph" />
+        <span className="login-mark-text">Fashion Intelligence Platform</span>
+      </div>
+
       <div className="login-card">
-        <div className="login-eyebrow">Fashion Intelligence Platform</div>
         <h1 className="login-title">Sign in</h1>
         <p className="login-subtitle">
-          Finance, product, and influencer intelligence for a luxury fashion brand — all in one place.
+          Finance, product, and influencer intelligence for a luxury fashion brand.
         </p>
 
         <button type="button" className="login-google-btn" onClick={signInWithGoogle}>
-          <GoogleIcon />
+          <span className="login-google-icon">
+            <GoogleIcon />
+          </span>
           Continue with Google
         </button>
 
-        <div className="login-divider">
-          <span>or</span>
-        </div>
+        {error && !showEmailForm && <p className="login-error" style={{ marginTop: 14, textAlign: "center" }}>{error}</p>}
 
-        <form onSubmit={handleEmailSubmit} className="login-form">
-          <div>
-            <label className="login-label" htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
-            />
-          </div>
-          <div>
-            <label className="login-label" htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && <p className="login-error">{error}</p>}
-          {message && <p className="login-message">{message}</p>}
-
-          <button type="submit" className="btn" disabled={loading} style={{ width: "100%" }}>
-            {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+        {!showEmailForm ? (
+          <button
+            type="button"
+            className="login-email-toggle"
+            onClick={() => setShowEmailForm(true)}
+          >
+            Continue with email
           </button>
-        </form>
+        ) : (
+          <>
+            <div className="login-divider">
+              <span>or</span>
+            </div>
 
-        <button
-          type="button"
-          className="login-mode-toggle"
-          onClick={() => {
-            setMode(mode === "signin" ? "signup" : "signin");
-            setError(null);
-            setMessage(null);
-          }}
-        >
-          {mode === "signin" ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-        </button>
+            <form onSubmit={handleEmailSubmit} className="login-form">
+              <div>
+                <label className="login-label" htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                />
+              </div>
+              <div>
+                <label className="login-label" htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+
+              {error && <p className="login-error">{error}</p>}
+              {message && <p className="login-message">{message}</p>}
+
+              <button type="submit" className="btn" disabled={loading} style={{ width: "100%" }}>
+                {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+              </button>
+            </form>
+
+            <button
+              type="button"
+              className="login-mode-toggle"
+              onClick={() => {
+                setMode(mode === "signin" ? "signup" : "signin");
+                setError(null);
+                setMessage(null);
+              }}
+            >
+              {mode === "signin" ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+            </button>
+
+            <button
+              type="button"
+              className="login-back-toggle"
+              onClick={() => {
+                setShowEmailForm(false);
+                setError(null);
+                setMessage(null);
+              }}
+            >
+              ← Back
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
