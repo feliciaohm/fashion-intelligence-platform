@@ -37,9 +37,9 @@ Across Maison Lumière's 40 campaigns and 16 influencers, this funnel shows real
 
 ## Role-Based Views
 
-The platform opens with a role picker, not a generic dashboard. Seven roles — CEO, CFO, CMO, Head of Retail, Head of Wholesale, Finance Intern, Marketing Manager — each get a personalized homepage showing only their 4-6 most relevant modules, with the full 30-page platform still one click away. The choice persists across sessions and can be switched anytime from the sidebar. A CFO opens Consolidated P&L, Finance Deep-Dive, the Monthly Variance Report, Cost Centers, and the Cost Allocation Engine; a Head of Wholesale opens Wholesale Intelligence, Product Lifecycle, Pricing Intelligence, and Supplier Intelligence — the same underlying data, surfaced differently depending on who's asking.
+The platform opens with a one-time, single-question onboarding screen the first time a user signs in — not a role-picker page shown on every visit. Seven roles — CEO, CFO, CMO, Head of Retail, Head of Wholesale, Finance Intern, Marketing Manager — each get a personalized homepage showing only their 4-6 most relevant modules, with the full 31-page platform still one click away. The choice is stored permanently in the user's Supabase profile and can be changed anytime from Settings — never a picker screen again after the first login. A CFO opens Consolidated P&L, Finance Deep-Dive, the Monthly Variance Report, Cost Centers, and the Cost Allocation Engine; a Head of Wholesale opens Wholesale Intelligence, Product Lifecycle, Pricing Intelligence, and Supplier Intelligence — the same underlying data, surfaced differently depending on who's asking.
 
-## The Platform — 30 Pages
+## The Platform — 31 Pages
 
 **Overview**
 1. **Intelligence / Command Center** (`/intelligence`) — search or drag any influencer, product, country, channel, department, or quarter into a filter zone and get live matching results pulled from all 8 underlying modules at once
@@ -70,7 +70,7 @@ The platform opens with a role picker, not a generic dashboard. Seven roles — 
 20. **Returns** (`/returns`) — refunds by reason, linked back to the originating campaign where traceable
 
 **Intelligence**
-21. **Decision Intelligence** (`/decision-intelligence`) — twenty calculators for the decisions a CEO, CMO, or CFO actually has to make: store viability, collaboration ROI, price elasticity, market expansion, Monte Carlo revenue forecasting, difference-in-differences campaign measurement, CLV, CAC:CLV, churn risk and churn prediction, TAM/SAM/SOM market sizing, store NPV/payback/IRR, demand decomposition, brand valuation (DCF), EOQ (now with a real reorder point, sourced from Supplier Intelligence's lead-time data), Bass diffusion adoption curves, CAPM, WACC (wired into the DCF automatically), price/volume/mix revenue decomposition, and CAGR & Rule of 72
+21. **Decision Intelligence** (`/decision-intelligence`) — twenty-five calculators for the decisions a CEO, CMO, or CFO actually has to make: store viability, collaboration ROI, price elasticity, market expansion, Monte Carlo revenue forecasting, difference-in-differences campaign measurement, CLV, CAC:CLV, churn risk and churn prediction, TAM/SAM/SOM market sizing, store NPV/payback/IRR, demand decomposition, brand valuation (DCF), EOQ (now with a real reorder point, sourced from Supplier Intelligence's lead-time data), Bass diffusion adoption curves, CAPM, WACC (wired into the DCF automatically), price/volume/mix revenue decomposition, CAGR & Rule of 72, RFM segmentation, cohort retention curves, time-decay attribution, sell-through rate, and GMROI
 22. **Value Driver Tree** (`/value-drivers`) — how every real number rolls up into total revenue and margin, visually, plus a sensitivity tornado chart ranking every business lever by impact
 23. **Growth Bridge** (`/growth-bridge`) — the standard consulting revenue bridge (expansion, new business, churn, price) showing exactly how the brand got from last period's revenue to this period's, built from real customer-level purchase data
 24. **Benchmark Intelligence** (`/benchmarks`) — how Maison Lumière's key metrics compare to real, publicly-sourced luxury industry benchmarks (influencer ROI, gross margin, customer retention, CAC:CLV, return rate), each with a cited source
@@ -81,7 +81,8 @@ The platform opens with a role picker, not a generic dashboard. Seven roles — 
 29. **Master Views** (`/master`) — the four cross-functional views (product performance, influencer ROI, market performance, financial health) that sit above the raw tables
 
 **Platform**
-30. **Settings** (`/settings`) — manage the Shopify and Excel connectors, connection status, and manual sync
+30. **Settings** (`/settings`) — manage the Shopify and Excel connectors, connection status, and manual sync, plus the role-change control (the only place a role can be changed after onboarding)
+31. **Data Quality** (`/data-quality`) — the foundation layer every calculation runs on: real duplicate detection, null-value handling, outlier review with an include/exclude toggle, and country/currency normalization, all run live against BigQuery
 
 ## Key Features
 
@@ -110,6 +111,10 @@ The platform opens with a role picker, not a generic dashboard. Seven roles — 
 **A true-margin waterfall**, not just a revenue number — Finance Deep-Dive computes revenue minus COGS minus real returns minus real gifting cost, live, from the platform's own data, to answer the question every CFO actually asks: what's left.
 
 **An SAP CO/FI-equivalent layer** — three modules built directly from an SAP financial-modules analysis: Consolidated P&L (`/consolidated-pnl`), the single page a CFO opens every morning, walking real revenue by channel down to net margin with auto-generated management commentary; Supplier Intelligence (`/suppliers`), a procurement scorecard with risk alerts that feeds real lead-time data into the EOQ calculator instead of a placeholder assumption; and the Cost Allocation Engine (`/cost-allocation`), an activity-based-costing tool that lets you reallocate shared overhead across channels with sliders and watch "true profitability by channel" — the number most fashion brands never compute — change live.
+
+**A foundational Data Quality layer** (`/data-quality`) that runs before any number reaches a calculator or dashboard: real duplicate detection across three source tables, null-value handling that flags "cost unknown" campaigns instead of silently dropping or dividing by zero, statistical outlier detection (>3σ) with an include/exclude toggle that recomputes totals live, and a country-name-to-ISO normalization log. Every calculator and key data page carries a small footnote — "This calculation uses X data points. Y were excluded. See data quality report." — because a CFO doesn't trust a number without knowing what it excluded.
+
+**Five more Decision Intelligence models**, each grounded in real data rather than built as a generic template: RFM Segmentation (quintile-scored on real Recency/Frequency/Monetary — and honest about Frequency currently being degenerate, since every real customer has purchased exactly once); Cohort Retention Curves (a real acquisition-month heatmap, right-censored so young cohorts show "not yet observable" instead of a fabricated 0%, filterable by channel); Time Decay Attribution (splits real purchase revenue across a customer's actual touchpoint history by exponential decay instead of crediting the last click alone); Sell-Through Rate (real units sold vs. available, categories under 70% flagged, with a depletion-date projection); and GMROI (real gross margin over real inventory value, benchmarked against a 3.2 luxury-industry threshold).
 
 **A forecast built on real trend, not a guess** — next quarter's revenue by channel, projected from each channel's own historical month-over-month movement, shown as conservative/base/optimistic scenarios with an honest caveat about what simple trend extrapolation can and can't tell you.
 

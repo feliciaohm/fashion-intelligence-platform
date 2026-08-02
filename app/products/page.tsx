@@ -1,6 +1,7 @@
 import ProductsTable from "../../components/ProductsTable";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
+import DataQualityIndicator from "@/components/DataQualityIndicator";
 
 async function getData(country?: string) {
   const url = country
@@ -100,6 +101,7 @@ export default async function Page({
       </div>
 
       <DocInsightBox>{insightBoxText}</DocInsightBox>
+      <DataQualityIndicator dataPoints={data.length} />
       <DocFooterNote timestamp={formatTimestamp(new Date())} />
 
       <RelatedPages hrefs={["/product-lifecycle", "/pricing", "/wholesale"]} />

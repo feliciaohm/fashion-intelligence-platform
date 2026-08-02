@@ -62,7 +62,10 @@ const links = [
   },
   {
     section: "Platform",
-    items: [{ href: "/settings", label: "Settings" }],
+    items: [
+      { href: "/data-quality", label: "Data Quality" },
+      { href: "/settings", label: "Settings" },
+    ],
   },
 ];
 

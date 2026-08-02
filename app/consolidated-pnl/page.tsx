@@ -3,6 +3,7 @@ import PrintButton from "@/components/PrintButton";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 import { formatDeptName } from "@/lib/narrative";
+import DataQualityIndicator from "@/components/DataQualityIndicator";
 
 async function getData() {
   const res = await fetch("http://localhost:3000/api/consolidated-pnl", { cache: "no-store" });
@@ -205,9 +206,10 @@ export default async function ConsolidatedPnlPage() {
       </div>
 
       <DocInsightBox>{insightBoxText}</DocInsightBox>
+      <DataQualityIndicator dataPoints={revenueByChannel.length + opexByDept.length} />
       <DocFooterNote timestamp={formatTimestamp(new Date())} />
 
-      <RelatedPages hrefs={["/finance-deep", "/variance-report", "/cost-allocation"]} />
+      <RelatedPages hrefs={["/finance-deep", "/variance-report", "/cost-allocation", "/data-quality"]} />
     </div>
   );
 }

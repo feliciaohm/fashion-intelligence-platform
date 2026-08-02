@@ -47,4 +47,5 @@ export const RELATED_PAGES: Record<string, string[]> = {
   "/master": ["/explore", "/finance-deep", "/products"],
 
   "/settings": ["/intelligence", "/executive", "/dashboard"],
+  "/data-quality": ["/roi", "/consolidated-pnl", "/decision-intelligence"],
 };

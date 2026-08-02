@@ -3,6 +3,7 @@ import PrintButton from "@/components/PrintButton";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 import { BENCHMARKS } from "@/lib/benchmarks";
+import DataQualityIndicator from "@/components/DataQualityIndicator";
 
 async function getData() {
   const res = await fetch("http://localhost:3000/api/finance-deep", { cache: "no-store" });
@@ -213,6 +214,7 @@ export default async function FinanceDeepPage() {
       </div>
 
       <DocInsightBox>{insightBoxText}</DocInsightBox>
+      <DataQualityIndicator dataPoints={channels.length} />
       <DocFooterNote timestamp={formatTimestamp(new Date())} />
 
       <RelatedPages hrefs={["/consolidated-pnl", "/variance-report", "/forecast"]} />

@@ -42,7 +42,7 @@ export const ROLES: RoleConfig[] = [
       { href: "/executive", name: "Executive Summary", desc: "Revenue vs. budget, top performers, and one thing that needs attention." },
       { href: "/consolidated-pnl", name: "Consolidated P&L", desc: "Revenue → gross profit → opex → EBITDA → net margin, with auto-generated management commentary." },
       { href: "/intelligence", name: "Command Center", desc: "Search or filter across every module at once." },
-      { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Twenty calculators covering revenue forecasting, campaign analysis, CLV, CAC, churn, market sizing, store NPV, and more — the decisions that actually matter." },
+      { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Twenty-five calculators covering revenue forecasting, campaign analysis, CLV, CAC, churn, market sizing, store NPV, and more — the decisions that actually matter." },
       { href: "/value-drivers", name: "Value Driver Tree", desc: "How every real number rolls up into total revenue and margin, visually." },
       { href: "/growth-bridge", name: "Growth Bridge", desc: "The standard consulting revenue bridge — expansion, new business, churn, and price." },
       { href: "/benchmarks", name: "Benchmark Intelligence", desc: "How Maison Lumière compares to real, sourced luxury industry benchmarks." },
@@ -56,12 +56,13 @@ export const ROLES: RoleConfig[] = [
     label: "CFO",
     tagline: "Margin, variance, and what's coming next quarter.",
     modules: [
+      { href: "/data-quality", name: "Data Quality", desc: "Duplicates, nulls, outliers, and normalization — what every number on this platform has already been checked against." },
       { href: "/consolidated-pnl", name: "Consolidated P&L", desc: "The single source of truth open every morning — revenue by channel → gross profit → opex → EBITDA → net margin, actual vs. budget vs. prior period." },
       { href: "/finance-deep", name: "Finance Deep-Dive", desc: "Channel P&L and the true-margin waterfall — revenue minus COGS, returns, and gifting." },
       { href: "/variance-report", name: "Monthly Variance Report", desc: "Budget vs. actual for every cost center and channel, with a written summary." },
       { href: "/cost-centers", name: "Cost Centers", desc: "Budget vs. actual by department, monthly." },
       { href: "/cost-allocation", name: "Cost Allocation Engine", desc: "True profitability by channel once shared overhead is allocated with activity-based costing." },
-      { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Twenty calculators covering revenue forecasting, campaign analysis, CLV, CAC, churn, market sizing, store NPV, and more." },
+      { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Twenty-five calculators covering revenue forecasting, campaign analysis, CLV, CAC, churn, market sizing, store NPV, and more." },
       { href: "/value-drivers", name: "Value Driver Tree", desc: "How every real number rolls up into total revenue and margin, visually." },
       { href: "/growth-bridge", name: "Growth Bridge", desc: "The standard consulting revenue bridge — expansion, new business, churn, and price." },
       { href: "/benchmarks", name: "Benchmark Intelligence", desc: "How Maison Lumière compares to real, sourced luxury industry benchmarks." },
@@ -76,7 +77,7 @@ export const ROLES: RoleConfig[] = [
     modules: [
       { href: "/roi", name: "Influencer ROI", desc: "Campaign-level return on every gifted post." },
       { href: "/intelligence", name: "Command Center", desc: "Search or filter across every module at once." },
-      { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Twenty calculators covering revenue forecasting, campaign analysis, CLV, CAC, churn, market sizing, store NPV, and more — the decisions that actually matter." },
+      { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Twenty-five calculators covering revenue forecasting, campaign analysis, CLV, CAC, churn, market sizing, store NPV, and more — the decisions that actually matter." },
       { href: "/benchmarks", name: "Benchmark Intelligence", desc: "How Maison Lumière compares to real, sourced luxury industry benchmarks." },
       { href: "/pricing", name: "Pricing Intelligence", desc: "Margin at every price point and where it's under threshold." },
       { href: "/customer-journey", name: "Customer Journey", desc: "First touch to purchase, churn risk, VIP segmentation." },
@@ -177,7 +178,7 @@ export const ALL_MODULES: { group: string; items: RoleModule[] }[] = [
   {
     group: "Intelligence",
     items: [
-      { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Twenty calculators covering revenue forecasting, campaign analysis, CLV, CAC, churn, market sizing, store NPV, and more — the decisions that actually matter." },
+      { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Twenty-five calculators covering revenue forecasting, campaign analysis, CLV, CAC, churn, market sizing, store NPV, and more — the decisions that actually matter." },
       { href: "/value-drivers", name: "Value Driver Tree", desc: "How every real number rolls up into total revenue and margin, visually." },
       { href: "/growth-bridge", name: "Growth Bridge", desc: "The standard consulting revenue bridge — expansion, new business, churn, and price, real customer-level data." },
       { href: "/benchmarks", name: "Benchmark Intelligence", desc: "How Maison Lumière's key metrics compare to real, sourced luxury industry benchmarks." },
@@ -190,7 +191,10 @@ export const ALL_MODULES: { group: string; items: RoleModule[] }[] = [
   },
   {
     group: "Platform",
-    items: [{ href: "/settings", name: "Settings", desc: "Connect real data sources — Shopify, Excel, and more." }],
+    items: [
+      { href: "/data-quality", name: "Data Quality", desc: "Duplicate detection, null handling, outlier review, and normalization — the foundation every calculation runs on." },
+      { href: "/settings", name: "Settings", desc: "Connect real data sources — Shopify, Excel, and more." },
+    ],
   },
 ];
 

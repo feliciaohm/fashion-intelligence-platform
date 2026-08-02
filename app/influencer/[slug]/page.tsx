@@ -3,6 +3,7 @@ import ExportCsvButton from "@/components/ExportCsvButton";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 import EmptyState from "@/components/EmptyState";
+import DataQualityIndicator from "@/components/DataQualityIndicator";
 
 function dateOf(p: any): string {
   return p.post_date?.value ?? p.post_date ?? "";
@@ -140,6 +141,7 @@ export default async function InfluencerDetail({
       {posts.length > 0 && (
         <>
           <DocInsightBox>{insightBoxText}</DocInsightBox>
+          <DataQualityIndicator dataPoints={posts.length} />
           <DocFooterNote timestamp={formatTimestamp(new Date())} />
         </>
       )}

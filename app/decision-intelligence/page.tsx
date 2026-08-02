@@ -6,6 +6,8 @@ import CopyInsightButton from "@/components/CopyInsightButton";
 import RelatedPages from "@/components/RelatedPages";
 import { buildInsightText } from "@/lib/insight-text";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
+import DataQualityIndicator from "@/components/DataQualityIndicator";
+import EmptyState from "@/components/EmptyState";
 import type { MetricStatus, QuickMetric } from "@/lib/quick-metrics-server";
 
 function toDirection(status: MetricStatus): "good" | "critical" | "neutral" {
@@ -2267,6 +2269,643 @@ function CagrCalculator() {
   );
 }
 
+function RfmSegmentationCalculator() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+
+  async function run() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/decision/rfm-segmentation");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setResult(json);
+    } catch (err) {
+      setError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const SEGMENT_ORDER = ["Champions", "At Risk", "New Customers", "Developing", "Lost"];
+
+  function tier(score: number): "Low" | "Mid" | "High" {
+    if (score <= 2) return "Low";
+    if (score >= 4) return "High";
+    return "Mid";
+  }
+
+  const matrix = result
+    ? (() => {
+        const cells: Record<string, number> = {};
+        result.customers.forEach((c: any) => {
+          const fmAvg = (c.f + c.m) / 2;
+          const rTier = tier(c.r);
+          const fmTier = fmAvg >= 3.5 ? "High" : fmAvg <= 2.5 ? "Low" : "Mid";
+          cells[`${rTier}|${fmTier}`] = (cells[`${rTier}|${fmTier}`] || 0) + 1;
+        });
+        return cells;
+      })()
+    : {};
+
+  return (
+    <div className="panel">
+      <h2 className="section-title" style={{ fontSize: 15, marginBottom: 4 }}>21. RFM Segmentation</h2>
+      <p className="text-muted" style={{ marginBottom: 16 }}>
+        Scores every real customer on Recency, Frequency, and Monetary value (quintiles 1–5 each) and maps them into
+        Champions, At Risk, Lost, and New Customer segments.
+      </p>
+
+      <div className="calc-layout">
+        <div className="calc-form">
+          <button type="button" className="btn" onClick={run} disabled={loading}>
+            {loading ? "Scoring…" : "Run Analysis"}
+          </button>
+        </div>
+
+        <div className="calc-result">
+          {error && <p style={{ color: "var(--status-critical)", fontSize: 12.5 }}>{error}</p>}
+          {!result && !error && <p className="calc-result-placeholder">Run to score all real customers on R, F, and M.</p>}
+          {result && (
+            <>
+              {result.frequencyIsDegenerate && (
+                <p style={{ fontSize: 12.5, color: "var(--status-critical)", marginBottom: 14, fontStyle: "italic" }}>
+                  Every real customer has purchased exactly once (order_count = 1) — the same "zero repeat purchase"
+                  finding behind the Growth Bridge and Consulting Summary. Frequency is shown as a neutral score for
+                  everyone below, and segment boundaries are defined by Recency and Monetary alone until real
+                  repeat-purchase variation exists — including F would make Champions, Lost, and New Customers all
+                  structurally impossible at once.
+                </p>
+              )}
+              <div className="stat-grid" style={{ marginBottom: 16 }}>
+                {SEGMENT_ORDER.map((seg) => (
+                  <div className="stat-card" key={seg}>
+                    <div className="stat-label">{seg}</div>
+                    <div className="stat-value">{result.segmentCounts[seg] || 0}</div>
+                  </div>
+                ))}
+              </div>
+
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-ink-muted)", marginBottom: 8 }}>
+                Segment matrix — Recency × (Frequency + Monetary)
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "auto repeat(3, 1fr)", gap: 1, background: "var(--color-border)", border: "1px solid var(--color-border)", marginBottom: 16 }}>
+                <div className="panel" style={{ border: "none" }} />
+                {["Low", "Mid", "High"].map((fm) => (
+                  <div key={fm} className="panel" style={{ border: "none", textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--color-ink-muted)" }}>
+                    FM: {fm}
+                  </div>
+                ))}
+                {["High", "Mid", "Low"].map((r) => (
+                  <>
+                    <div key={`label-${r}`} className="panel" style={{ border: "none", fontSize: 11, fontWeight: 600, color: "var(--color-ink-muted)", display: "flex", alignItems: "center" }}>
+                      R: {r}
+                    </div>
+                    {["Low", "Mid", "High"].map((fm) => (
+                      <div key={`${r}-${fm}`} className="panel" style={{ border: "none", textAlign: "center" }}>
+                        <div className="stat-value" style={{ fontSize: 20 }}>{matrix[`${r}|${fm}`] || 0}</div>
+                      </div>
+                    ))}
+                  </>
+                ))}
+              </div>
+
+              <div className="data-table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Customer</th>
+                      <th>Country</th>
+                      <th>R</th>
+                      <th>F</th>
+                      <th>M</th>
+                      <th>Segment</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...result.customers]
+                      .sort((a: any, b: any) => SEGMENT_ORDER.indexOf(a.segment) - SEGMENT_ORDER.indexOf(b.segment))
+                      .slice(0, 20)
+                      .map((c: any) => (
+                        <tr key={c.customer_id}>
+                          <td className="mono" style={{ fontSize: 11 }}>{c.customer_id.slice(0, 8)}</td>
+                          <td>{c.country}</td>
+                          <td>{c.r}</td>
+                          <td>{c.f}</td>
+                          <td>{c.m}</td>
+                          <td>{c.segment}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <DataQualityIndicator dataPoints={result.totalCustomers} />
+            </>
+          )}
+        </div>
+      </div>
+
+      {result && (
+        <Methodology
+          lines={[
+            `Recency = real days_since_last_activity (customer_journey); Frequency = real order_count (crm_customers); Monetary = real total_spend (crm_customers).`,
+            `Each dimension is ranked into quintiles 1 (worst 20%) to 5 (best 20%) across all ${result.totalCustomers} real customers.`,
+            result.frequencyIsDegenerate
+              ? `Frequency is held at a neutral score for every customer because order_count = 1 for all ${result.totalCustomers} real customers today — no repeat purchase exists yet in this dataset. Segment boundaries here use Recency and Monetary only: Champions = R≥4, M≥4. At Risk = R≤2, M≥4. Lost = R≤2, M≤2. New Customers = R≥4, M≤2. Everyone else is "Developing." Including a constant F in these boundaries would make three of the four named segments unreachable at once.`
+              : `Champions = R≥4, F≥4, M≥4. At Risk = R≤2 with F≥4 or M≥4. Lost = R≤2, F≤2, M≤2. New Customers = R≥4, F≤2. Everyone else is "Developing." Frequency is ranked normally — real repeat-purchase variation exists in this dataset.`,
+          ]}
+        />
+      )}
+    </div>
+  );
+}
+
+function CohortRetentionCalculator() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+  const [channel, setChannel] = useState<"all" | "influencer" | "organic">("all");
+
+  async function run() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/decision/cohort-retention");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setResult(json);
+    } catch (err) {
+      setError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filteredCohorts = result
+    ? result.cohorts.filter((c: any) => channel === "all" || c.channel === channel)
+    : [];
+
+  function cellColor(pct: number | string): string {
+    if (typeof pct !== "number") return "var(--color-bg-sunken)";
+    const intensity = Math.min(1, pct / 60);
+    const lightness = 88 - intensity * 55;
+    return `hsl(38, 45%, ${lightness}%)`;
+  }
+
+  return (
+    <div className="panel">
+      <h2 className="section-title" style={{ fontSize: 15, marginBottom: 4 }}>22. Cohort Retention Curves</h2>
+      <p className="text-muted" style={{ marginBottom: 16 }}>
+        Groups real customers by acquisition month and tracks what share are still active at 30/60/90/180 days —
+        filterable by acquisition channel.
+      </p>
+
+      <div className="calc-layout">
+        <div className="calc-form">
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 600, display: "block", marginBottom: 4 }}>Acquisition channel</label>
+            <select value={channel} onChange={(e) => setChannel(e.target.value as any)} style={{ width: "100%" }}>
+              <option value="all">All channels</option>
+              <option value="influencer">Influencer</option>
+              <option value="organic">Organic</option>
+            </select>
+          </div>
+          <button type="button" className="btn" onClick={run} disabled={loading}>
+            {loading ? "Building cohorts…" : "Run Analysis"}
+          </button>
+        </div>
+
+        <div className="calc-result">
+          {error && <p style={{ color: "var(--status-critical)", fontSize: 12.5 }}>{error}</p>}
+          {!result && !error && <p className="calc-result-placeholder">Run to build real acquisition-month cohorts.</p>}
+          {result && channel === "organic" && result.channelCounts.organic === 0 ? (
+            <EmptyState
+              label="No Organic Cohorts"
+              message="Every real customer in this dataset converted through an influencer touchpoint — there is no organic-acquired cohort to show yet. Switch to 'Influencer' or 'All channels.'"
+            />
+          ) : result ? (
+            <>
+              <div style={{ overflowX: "auto" }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Cohort</th>
+                      <th>Customers</th>
+                      {result.checkpoints.map((cp: number) => (
+                        <th key={cp}>Day {cp}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCohorts.map((c: any) => (
+                      <tr key={`${c.cohortMonth}-${c.channel}`}>
+                        <td className="mono">{c.cohortMonth}</td>
+                        <td>{c.customerCount}</td>
+                        {result.checkpoints.map((cp: number) => (
+                          <td key={cp} style={{ background: cellColor(c.retention[cp]), textAlign: "center" }}>
+                            {typeof c.retention[cp] === "number" ? `${c.retention[cp]}%` : "n/a"}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-muted" style={{ fontSize: 11, marginTop: 10 }}>
+                Dark = high retention, light = low. "n/a" means that cohort hasn't reached that checkpoint's age yet
+                (right-censored), not zero retention.
+              </p>
+              <DataQualityIndicator dataPoints={filteredCohorts.reduce((s: number, c: any) => s + c.customerCount, 0)} />
+            </>
+          ) : null}
+        </div>
+      </div>
+
+      {result && (
+        <Methodology
+          lines={[
+            `Cohort = real first_purchase_date (crm_customers), grouped by month. "Retained at day N" means the customer's real last_activity_date (customer_journey) is at least N days after their first purchase — an activity-recency proxy, not a repeat-purchase count, since order_count = 1 for every real customer today.`,
+            `Cohorts younger than a given checkpoint (relative to the latest real event, ${result.today.slice(0, 10)}) show "n/a" for that checkpoint rather than a misleading 0%.`,
+            `Channel: every real customer's first_touch_source in this dataset is influencer-attributed — there is no organic cohort in the real data yet, shown honestly as an empty state rather than fabricated.`,
+          ]}
+        />
+      )}
+    </div>
+  );
+}
+
+function TimeDecayAttributionCalculator() {
+  const [lambda, setLambda] = useState("0.1");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+
+  async function calculate(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/decision/time-decay-attribution", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lambda: Number(lambda) }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setResult(json);
+    } catch (err) {
+      setError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="panel">
+      <h2 className="section-title" style={{ fontSize: 15, marginBottom: 4 }}>23. Time Decay Attribution</h2>
+      <p className="text-muted" style={{ marginBottom: 16 }}>
+        Splits real purchase revenue across every real touchpoint in a customer's session history instead of giving
+        100% credit to the last click — touchpoints closer to purchase get more credit via exponential decay.
+      </p>
+
+      <div className="calc-layout">
+        <form onSubmit={calculate} className="calc-form">
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 600, display: "block", marginBottom: 4 }}>
+              Decay rate (λ)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={lambda}
+              onChange={(e) => setLambda(e.target.value)}
+              style={{ width: "100%" }}
+            />
+            <p className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>
+              credit = e^(−λt), t = days before purchase. Higher λ concentrates credit closer to conversion.
+            </p>
+          </div>
+          <button type="submit" className="btn" disabled={loading}>
+            {loading ? "Calculating…" : "Calculate"}
+          </button>
+        </form>
+
+        <div className="calc-result">
+          {error && <p style={{ color: "var(--status-critical)", fontSize: 12.5 }}>{error}</p>}
+          {!result && !error && <p className="calc-result-placeholder">Set a decay rate and calculate to compare last-touch vs. time-decay attribution.</p>}
+          {result && (
+            <>
+              <div className="stat-grid" style={{ marginBottom: 16 }}>
+                <div className="stat-card">
+                  <div className="stat-label">Customers Analyzed</div>
+                  <div className="stat-value">{result.customersAnalyzed}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Avg. Touchpoints / Customer</div>
+                  <div className="stat-value">{result.avgTouchpointsPerCustomer}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Multi-Touch Customers</div>
+                  <div className="stat-value">{result.customersWithMultiTouch}</div>
+                </div>
+              </div>
+
+              <div className="data-table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th>Last-Touch Revenue</th>
+                      <th>Time-Decay Revenue</th>
+                      <th>Difference</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.comparison.map((row: any) => {
+                      const diff = row.timeDecayRevenue - row.lastTouchRevenue;
+                      return (
+                        <tr key={row.source}>
+                          <td>{row.source}</td>
+                          <td>€{row.lastTouchRevenue.toLocaleString()}</td>
+                          <td>€{row.timeDecayRevenue.toLocaleString()}</td>
+                          <td style={{ color: diff >= 0 ? "var(--status-good)" : "var(--status-critical)" }}>
+                            {diff >= 0 ? "+" : ""}€{diff.toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <DataQualityIndicator dataPoints={result.customersAnalyzed} />
+            </>
+          )}
+        </div>
+      </div>
+
+      {result && (
+        <Methodology
+          lines={[
+            `Touchpoints are every real sales_events row for a converting visitor at or before their real purchase timestamp (avg ${result.avgTouchpointsPerCustomer} touchpoints/customer, ${result.customersWithMultiTouch} of ${result.customersAnalyzed} customers had more than one).`,
+            `Time-decay weight per touchpoint = e^(−λt), t = real days between that touchpoint and the purchase, normalized to sum to 1 per customer, then multiplied by that customer's real purchase revenue.`,
+            `Last-touch credits 100% of revenue to the real traffic_source of the touchpoint closest to purchase (often the purchase event's own source when no earlier touchpoint exists).`,
+            `λ = ${result.lambda} in this run — a documented, user-adjustable planning parameter, not derived from this dataset (no labeled ground-truth attribution exists to fit it against).`,
+          ]}
+        />
+      )}
+    </div>
+  );
+}
+
+function SellThroughRateCalculator() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+
+  async function run() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/decision/sell-through");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setResult(json);
+    } catch (err) {
+      setError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="panel">
+      <h2 className="section-title" style={{ fontSize: 15, marginBottom: 4 }}>24. Sell-Through Rate</h2>
+      <p className="text-muted" style={{ marginBottom: 16 }}>
+        Units sold ÷ total units available, by category and season, with a projected depletion date at current
+        velocity. Categories below 70% are flagged.
+      </p>
+
+      <div className="calc-layout">
+        <div className="calc-form">
+          <button type="button" className="btn" onClick={run} disabled={loading}>
+            {loading ? "Calculating…" : "Run Analysis"}
+          </button>
+        </div>
+
+        <div className="calc-result">
+          {error && <p style={{ color: "var(--status-critical)", fontSize: 12.5 }}>{error}</p>}
+          {!result && !error && <p className="calc-result-placeholder">Run to see real sell-through by category, season, and market.</p>}
+          {result && (
+            <>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-ink-muted)", marginBottom: 8 }}>
+                By category
+              </p>
+              <div className="data-table-wrap" style={{ marginBottom: 18 }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>Sold</th>
+                      <th>Remaining</th>
+                      <th>Sell-Through</th>
+                      <th>Days to Deplete</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.byCategory.map((r: any) => (
+                      <tr key={r.category}>
+                        <td style={{ textTransform: "capitalize" }}>{r.category}</td>
+                        <td>{r.unitsSold}</td>
+                        <td>{r.unitsRemaining}</td>
+                        <td style={{ color: r.belowThreshold ? "var(--status-critical)" : "var(--status-good)", fontWeight: 600 }}>
+                          {typeof r.sellThroughPct === "number" ? `${r.sellThroughPct}%` : r.sellThroughPct}
+                        </td>
+                        <td>{r.daysToDeplete != null ? `${r.daysToDeplete}d` : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-ink-muted)", marginBottom: 8 }}>
+                By season
+              </p>
+              <div className="data-table-wrap" style={{ marginBottom: 18 }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Season</th>
+                      <th>Sold</th>
+                      <th>Remaining</th>
+                      <th>Sell-Through</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.bySeason.map((r: any) => (
+                      <tr key={r.season}>
+                        <td>{r.season}</td>
+                        <td>{r.unitsSold}</td>
+                        <td>{r.unitsRemaining}</td>
+                        <td style={{ color: r.belowThreshold ? "var(--status-critical)" : "var(--status-good)", fontWeight: 600 }}>
+                          {typeof r.sellThroughPct === "number" ? `${r.sellThroughPct}%` : r.sellThroughPct}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-ink-muted)", marginBottom: 8 }}>
+                Units sold by market
+              </p>
+              <div className="data-table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Market</th>
+                      <th>Units Sold</th>
+                      <th>Share of Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.byMarket.map((r: any) => (
+                      <tr key={r.country}>
+                        <td>{r.country}</td>
+                        <td>{r.unitsSold}</td>
+                        <td>{r.shareOfTotalPct}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <DataQualityIndicator dataPoints={result.products.length} />
+            </>
+          )}
+        </div>
+      </div>
+
+      {result && (
+        <Methodology
+          lines={[
+            `Sell-through % = real units_sold_direct ÷ (units_sold_direct + real stock_level), by category and season (product_lifecycle joined to inventory).`,
+            `Days to deplete = current real stock_level ÷ real daily sales velocity (units_sold_direct ÷ ${result.observedDays}-day observed window). Shown as "—" where velocity is zero.`,
+            `"By market" shows each country's real share of total units sold (sales_events) — inventory in this dataset isn't split by market, so this is a sales distribution, not a per-market inventory sell-through rate. Named plainly rather than implying a market-level stock denominator that doesn't exist.`,
+            `Categories below the ${result.threshold}% threshold are flagged in red.`,
+          ]}
+        />
+      )}
+    </div>
+  );
+}
+
+function GmroiCalculator() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+
+  async function run() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/decision/gmroi");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setResult(json);
+    } catch (err) {
+      setError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const statusColor: Record<string, string> = {
+    strong: "var(--status-good)",
+    adequate: "var(--color-ink)",
+    attention: "var(--status-critical)",
+    unknown: "var(--color-ink-muted)",
+  };
+
+  return (
+    <div className="panel">
+      <h2 className="section-title" style={{ fontSize: 15, marginBottom: 4 }}>25. GMROI</h2>
+      <p className="text-muted" style={{ marginBottom: 16 }}>
+        Gross margin ÷ average inventory value, by category — the single number that says whether inventory
+        investment is actually paying back.
+      </p>
+
+      <div className="calc-layout">
+        <div className="calc-form">
+          <button type="button" className="btn" onClick={run} disabled={loading}>
+            {loading ? "Calculating…" : "Run Analysis"}
+          </button>
+        </div>
+
+        <div className="calc-result">
+          {error && <p style={{ color: "var(--status-critical)", fontSize: 12.5 }}>{error}</p>}
+          {!result && !error && <p className="calc-result-placeholder">Run to see real GMROI by category against the luxury benchmark.</p>}
+          {result && (
+            <>
+              <div className="stat-grid" style={{ marginBottom: 16 }}>
+                <div className="stat-card">
+                  <div className="stat-label">Overall GMROI</div>
+                  <div className="stat-value">{result.overallGmroi}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Strong Benchmark</div>
+                  <div className="stat-value">≥ {result.strongBenchmark}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Needs Attention Below</div>
+                  <div className="stat-value">{result.attentionThreshold}</div>
+                </div>
+              </div>
+
+              <div className="data-table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>Gross Margin</th>
+                      <th>Inventory Value</th>
+                      <th>GMROI</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.categories.map((c: any) => (
+                      <tr key={c.category}>
+                        <td style={{ textTransform: "capitalize" }}>{c.category}</td>
+                        <td>€{c.grossMargin.toLocaleString()}</td>
+                        <td>€{c.inventoryValue.toLocaleString()}</td>
+                        <td style={{ fontWeight: 600, color: statusColor[c.status] }}>{c.gmroi}</td>
+                        <td style={{ color: statusColor[c.status], textTransform: "capitalize" }}>{c.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <DataQualityIndicator dataPoints={result.productCount} />
+            </>
+          )}
+        </div>
+      </div>
+
+      {result && (
+        <Methodology
+          lines={[
+            `Gross margin = real (retail_price − cost_price) × real units_sold_direct, summed by category (product_lifecycle). Used in place of finance_pnl, which is real but too sparse (2 rows, 1 period) to break out by category.`,
+            `Inventory value = real stock_level × real cost_price, summed by category (inventory joined to product_lifecycle).`,
+            `Benchmark: GMROI ≥ ${result.strongBenchmark} is considered strong in luxury fashion; below ${result.attentionThreshold} is flagged as requiring attention.`,
+          ]}
+        />
+      )}
+    </div>
+  );
+}
+
 type DiTab = "financial" | "market" | "customer" | "risk";
 
 const DI_TABS: { id: DiTab; label: string }[] = [
@@ -2276,7 +2915,7 @@ const DI_TABS: { id: DiTab; label: string }[] = [
   { id: "risk", label: "Risk & Operations" },
 ];
 
-const DI_TAB_COUNTS: Record<DiTab, number> = { financial: 6, market: 5, customer: 4, risk: 5 };
+const DI_TAB_COUNTS: Record<DiTab, number> = { financial: 7, market: 6, customer: 6, risk: 6 };
 
 function LinkOutCard({ href, title, description }: { href: string; title: string; description: string }) {
   return (
@@ -2333,7 +2972,7 @@ export default function DecisionIntelligencePage() {
   const priorityMetric = metrics?.find((m) => m.status === "critical") ?? metrics?.find((m) => m.status === "warn") ?? metrics?.[0];
   const headline = priorityMetric
     ? `${priorityMetric.label} is ${priorityMetric.value} — ${priorityMetric.benchmarkNote}.`
-    : "Twenty calculators, each grounded in real BigQuery data, are ready to run below.";
+    : "Twenty-five calculators, each grounded in real BigQuery data, are ready to run below.";
   const secondaryMetric = metrics?.find((m) => m !== priorityMetric && (m.status === "good" || m.status === "critical"));
   const insightBoxText = secondaryMetric
     ? `${secondaryMetric.label} is ${secondaryMetric.value} — ${secondaryMetric.benchmarkNote}. Run the calculators below to model what closing this gap, or protecting this strength, is actually worth.`
@@ -2370,6 +3009,7 @@ export default function DecisionIntelligencePage() {
           <CapmCalculator onResult={setCapmResult} />
           <WaccCalculator capmResult={capmResult} onResult={setWaccResult} />
           <CagrCalculator />
+          <GmroiCalculator />
         </div>
       )}
 
@@ -2380,6 +3020,7 @@ export default function DecisionIntelligencePage() {
           <MarketExpansionCalculator countries={countries} />
           <CollabRoiCalculator countries={countries} />
           <DemandDecompositionCalculator />
+          <TimeDecayAttributionCalculator />
           <LinkOutCard
             href="/growth-bridge"
             title="Growth Bridge →"
@@ -2395,6 +3036,8 @@ export default function DecisionIntelligencePage() {
           <CacClvCalculator />
           <ChurnRiskCalculator />
           <ChurnPredictionCalculator />
+          <RfmSegmentationCalculator />
+          <CohortRetentionCalculator />
           <LinkOutCard
             href="/growth-bridge"
             title="Cohort Analysis (Growth Bridge) →"
@@ -2410,6 +3053,7 @@ export default function DecisionIntelligencePage() {
           <PriceElasticityCalculator />
           <RevenueDecompositionCalculator />
           <EoqCalculator />
+          <SellThroughRateCalculator />
           <LinkOutCard
             href="/value-drivers"
             title="Sensitivity Tornado Chart →"
@@ -2421,7 +3065,7 @@ export default function DecisionIntelligencePage() {
       <DocInsightBox>{insightBoxText}</DocInsightBox>
       <DocFooterNote timestamp={formatTimestamp(new Date())} />
 
-      <RelatedPages hrefs={["/suppliers", "/value-drivers", "/growth-bridge"]} />
+      <RelatedPages hrefs={["/suppliers", "/value-drivers", "/growth-bridge", "/data-quality"]} />
     </div>
   );
 }
