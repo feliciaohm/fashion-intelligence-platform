@@ -1,15 +1,6 @@
 import { NextResponse } from "next/server";
-import { bigquery } from "@/lib/bigquery";
+import { replaceTableRows } from "@/lib/bigquery";
 import { readShopifyCredentials, setIntegrationStatus } from "@/lib/integrations-server";
-
-const PROJECT = "project-cb954e13-3b16-432f-aa7.analytics_lab";
-
-async function refreshTable(table: string, rows: Record<string, unknown>[]) {
-  await bigquery.query(`DELETE FROM \`${PROJECT}.${table}\` WHERE TRUE`);
-  if (rows.length > 0) {
-    await bigquery.dataset("analytics_lab").table(table).insert(rows);
-  }
-}
 
 export async function POST() {
   const creds = await readShopifyCredentials();
@@ -42,7 +33,7 @@ export async function POST() {
       line_items_count: Array.isArray(o.line_items) ? o.line_items.length : 0,
       synced_at: now,
     }));
-    await refreshTable("shopify_live_orders", rows);
+    await replaceTableRows("analytics_lab", "shopify_live_orders", rows);
     results.orders = rows.length;
   } catch (error) {
     errors.push(`orders: ${String(error)}`);
@@ -62,7 +53,7 @@ export async function POST() {
       price: p.variants?.[0]?.price ? Number(p.variants[0].price) : null,
       synced_at: now,
     }));
-    await refreshTable("shopify_live_products", rows);
+    await replaceTableRows("analytics_lab", "shopify_live_products", rows);
     results.products = rows.length;
   } catch (error) {
     errors.push(`products: ${String(error)}`);
@@ -82,7 +73,7 @@ export async function POST() {
       created_at: c.created_at,
       synced_at: now,
     }));
-    await refreshTable("shopify_live_customers", rows);
+    await replaceTableRows("analytics_lab", "shopify_live_customers", rows);
     results.customers = rows.length;
   } catch (error) {
     errors.push(`customers: ${String(error)}`);
@@ -109,7 +100,7 @@ export async function POST() {
         location_id: String(i.location_id),
         synced_at: now,
       }));
-      await refreshTable("shopify_live_inventory", rows);
+      await replaceTableRows("analytics_lab", "shopify_live_inventory", rows);
       results.inventory = rows.length;
     } else {
       results.inventory = 0;

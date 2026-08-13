@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import * as XLSX from "xlsx";
-import { bigquery } from "@/lib/bigquery";
+import { replaceTableRows } from "@/lib/bigquery";
 import { writeGiftingSheetUrls } from "@/lib/gifting-server";
-
-const PROJECT = "project-cb954e13-3b16-432f-aa7.analytics_lab";
 
 // Same public-CSV-export technique as the general Google Sheets integration
 // (app/api/integrations/google-sheets/import/route.ts) -- no OAuth, works
@@ -97,9 +95,13 @@ export async function POST(req: Request) {
 
     // Full replace, not append -- each import reflects the sheet's current
     // state, so removing or editing a row in Google Sheets is reflected here
-    // too, not just additions.
-    await bigquery.query(`DELETE FROM \`${PROJECT}.gifting_log\` WHERE TRUE`);
-    await bigquery.dataset("analytics_lab").table("gifting_log").insert(rows);
+    // too, not just additions. A WRITE_TRUNCATE load job, not DELETE-then-
+    // insert -- streamed rows sit in BigQuery's streaming buffer for up to
+    // ~90 minutes, during which ANY DML on the table is rejected outright
+    // (confirmed live: a real "would affect rows in the streaming buffer"
+    // error re-importing a sheet imported minutes earlier). A load job has
+    // no streaming buffer, sidestepping the problem instead of racing it.
+    await replaceTableRows("analytics_lab", "gifting_log", rows);
     await writeGiftingSheetUrls({ giftsSheetUrl: sheetUrl });
 
     return NextResponse.json({ ok: true, rowCount: rows.length, skipped: rawRows.length - rows.length });

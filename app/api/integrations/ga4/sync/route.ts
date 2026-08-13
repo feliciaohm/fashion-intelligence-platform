@@ -1,16 +1,7 @@
 import { NextResponse } from "next/server";
 import { JWT } from "google-auth-library";
-import { bigquery } from "@/lib/bigquery";
+import { replaceTableRows } from "@/lib/bigquery";
 import { readGa4Credentials, setIntegrationStatus } from "@/lib/integrations-server";
-
-const PROJECT = "project-cb954e13-3b16-432f-aa7.analytics_lab";
-
-async function refreshTable(table: string, rows: Record<string, unknown>[]) {
-  await bigquery.query(`DELETE FROM \`${PROJECT}.${table}\` WHERE TRUE`);
-  if (rows.length > 0) {
-    await bigquery.dataset("analytics_lab").table(table).insert(rows);
-  }
-}
 
 function ga4DateToIso(ga4Date: string): string {
   // GA4 returns dates as "YYYYMMDD" with no separators.
@@ -65,7 +56,7 @@ export async function POST() {
       synced_at: now,
     }));
 
-    await refreshTable("ga4_sessions", rows);
+    await replaceTableRows("analytics_lab", "ga4_sessions", rows);
     await setIntegrationStatus({
       integrationId: "ga4",
       status: "connected",

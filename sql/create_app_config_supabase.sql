@@ -16,3 +16,11 @@ create table if not exists app_config (
 );
 
 alter table app_config enable row level security;
+
+-- Creating the table doesn't automatically grant the service_role Postgres
+-- role privileges on it (confirmed live: a real 403 "permission denied for
+-- table app_config", code 42501, from the service-role key itself) --
+-- table-level GRANTs and RLS are two separate layers. This is the missing
+-- layer; RLS above already restricts everyone else.
+grant usage on schema public to service_role;
+grant all on public.app_config to service_role;

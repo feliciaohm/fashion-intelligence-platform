@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import * as XLSX from "xlsx";
-import { bigquery } from "@/lib/bigquery";
+import { replaceTableRows } from "@/lib/bigquery";
 import { writeGiftingSheetUrls } from "@/lib/gifting-server";
-
-const PROJECT = "project-cb954e13-3b16-432f-aa7.analytics_lab";
 
 function toCsvExportUrl(sheetUrl: string): string {
   const idMatch = sheetUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
@@ -80,8 +78,10 @@ export async function POST(req: Request) {
       throw new Error("No usable rows found. Make sure the sheet has columns for Influencer and Date Posted.");
     }
 
-    await bigquery.query(`DELETE FROM \`${PROJECT}.posting_log\` WHERE TRUE`);
-    await bigquery.dataset("analytics_lab").table("posting_log").insert(rows);
+    // WRITE_TRUNCATE load job, not DELETE-then-insert -- see the comment on
+    // replaceTableRows() in lib/bigquery.ts for why (streaming buffer DML
+    // rejection, confirmed live).
+    await replaceTableRows("analytics_lab", "posting_log", rows);
     await writeGiftingSheetUrls({ postsSheetUrl: sheetUrl });
 
     return NextResponse.json({ ok: true, rowCount: rows.length, skipped: rawRows.length - rows.length });

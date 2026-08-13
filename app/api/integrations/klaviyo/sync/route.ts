@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
-import { bigquery } from "@/lib/bigquery";
+import { replaceTableRows } from "@/lib/bigquery";
 import { readKlaviyoCredentials, setIntegrationStatus } from "@/lib/integrations-server";
 
-const PROJECT = "project-cb954e13-3b16-432f-aa7.analytics_lab";
 const KLAVIYO_REVISION = "2024-10-15";
-
-async function refreshTable(table: string, rows: Record<string, unknown>[]) {
-  await bigquery.query(`DELETE FROM \`${PROJECT}.${table}\` WHERE TRUE`);
-  if (rows.length > 0) {
-    await bigquery.dataset("analytics_lab").table(table).insert(rows);
-  }
-}
 
 export async function POST() {
   const creds = await readKlaviyoCredentials();
@@ -104,7 +96,7 @@ export async function POST() {
   );
 
   try {
-    await refreshTable("klaviyo_campaigns", rows);
+    await replaceTableRows("analytics_lab", "klaviyo_campaigns", rows);
     await setIntegrationStatus({
       integrationId: "klaviyo",
       status: "connected",
