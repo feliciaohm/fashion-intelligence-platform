@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const data = await res.json();
     const accountName: string | undefined = data.data?.[0]?.attributes?.contact_information?.organization_name;
 
-    writeKlaviyoCredentials({ apiKey });
+    await writeKlaviyoCredentials({ apiKey });
     await setIntegrationStatus({
       integrationId: "klaviyo",
       status: "connected",

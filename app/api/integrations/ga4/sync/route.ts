@@ -18,7 +18,7 @@ function ga4DateToIso(ga4Date: string): string {
 }
 
 export async function POST() {
-  const creds = readGa4Credentials();
+  const creds = await readGa4Credentials();
   if (!creds) {
     return NextResponse.json({ error: "GA4 is not connected yet" }, { status: 400 });
   }

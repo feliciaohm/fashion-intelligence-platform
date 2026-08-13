@@ -15,37 +15,31 @@
 //     against the real product_full_stack view. If it doesn't match
 //     (typo, product not in the catalog), visitor-lift and revenue are
 //     explicitly left null with a reason -- never estimated.
-import fs from "fs";
-import path from "path";
 import { bigquery } from "@/lib/bigquery";
 import { getPostVisitorSummaries, ATTRIBUTION_WINDOW_HOURS } from "@/lib/visitor-journey-server";
+import { getConfig, setConfig } from "@/lib/config-store";
 
 const PROJECT = "project-cb954e13-3b16-432f-aa7.analytics_lab";
 
-// Not secret, but stored the same way credentials are (local, gitignored
-// file) so the "Refresh Now" button and the auto-poll on the gifting page
-// can re-pull the sheet's current state without asking her to paste the URL
-// in again every time. See app/api/gifting/refresh/route.ts.
-const CREDENTIALS_DIR = path.join(process.cwd(), ".credentials");
-const SHEET_URLS_PATH = path.join(CREDENTIALS_DIR, "gifting-sheets.json");
-
+// Not secret, but stored via lib/config-store.ts (Supabase) rather than a
+// local file so the "Refresh Now" button, the auto-poll on the gifting
+// page, and the Apps Script webhook (app/api/gifting/webhook/route.ts,
+// which has no logged-in session to key off of) can all re-pull the
+// sheet's current state without asking her to paste the URL back in every
+// time -- and so it actually persists on Vercel, where a local file
+// doesn't (confirmed: ENOENT trying to write one in production).
 export interface GiftingSheetUrls {
   giftsSheetUrl?: string;
   postsSheetUrl?: string;
 }
 
-export function readGiftingSheetUrls(): GiftingSheetUrls {
-  try {
-    return JSON.parse(fs.readFileSync(SHEET_URLS_PATH, "utf8"));
-  } catch {
-    return {};
-  }
+export async function readGiftingSheetUrls(): Promise<GiftingSheetUrls> {
+  return (await getConfig<GiftingSheetUrls>("gifting_sheet_urls")) ?? {};
 }
 
-export function writeGiftingSheetUrls(update: GiftingSheetUrls) {
-  fs.mkdirSync(CREDENTIALS_DIR, { recursive: true });
-  const merged = { ...readGiftingSheetUrls(), ...update };
-  fs.writeFileSync(SHEET_URLS_PATH, JSON.stringify(merged), { mode: 0o600 });
+export async function writeGiftingSheetUrls(update: GiftingSheetUrls) {
+  const merged = { ...(await readGiftingSheetUrls()), ...update };
+  await setConfig("gifting_sheet_urls", merged);
 }
 
 // How many days after being gifted a post still reasonably counts as

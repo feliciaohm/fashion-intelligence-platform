@@ -4,7 +4,7 @@ import { getGiftingRoi, readGiftingSheetUrls } from "@/lib/gifting-server";
 export async function GET() {
   try {
     const { rows, windowDays } = await getGiftingRoi();
-    const { giftsSheetUrl, postsSheetUrl } = readGiftingSheetUrls();
+    const { giftsSheetUrl, postsSheetUrl } = await readGiftingSheetUrls();
     return NextResponse.json({
       rows,
       windowDays,

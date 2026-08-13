@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     const data = await res.json();
     const shopName: string | undefined = data.shop?.name;
 
-    writeShopifyCredentials({ shopDomain: domain, accessToken });
+    await writeShopifyCredentials({ shopDomain: domain, accessToken });
     await setIntegrationStatus({
       integrationId: "shopify",
       status: "connected",

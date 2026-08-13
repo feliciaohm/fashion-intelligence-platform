@@ -82,7 +82,7 @@ export async function POST(req: Request) {
 
     await bigquery.query(`DELETE FROM \`${PROJECT}.posting_log\` WHERE TRUE`);
     await bigquery.dataset("analytics_lab").table("posting_log").insert(rows);
-    writeGiftingSheetUrls({ postsSheetUrl: sheetUrl });
+    await writeGiftingSheetUrls({ postsSheetUrl: sheetUrl });
 
     return NextResponse.json({ ok: true, rowCount: rows.length, skipped: rawRows.length - rows.length });
   } catch (error) {

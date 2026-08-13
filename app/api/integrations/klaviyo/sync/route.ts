@@ -13,7 +13,7 @@ async function refreshTable(table: string, rows: Record<string, unknown>[]) {
 }
 
 export async function POST() {
-  const creds = readKlaviyoCredentials();
+  const creds = await readKlaviyoCredentials();
   if (!creds) {
     return NextResponse.json({ error: "Klaviyo is not connected yet" }, { status: 400 });
   }

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { deleteShopifyCredentials, setIntegrationStatus } from "@/lib/integrations-server";
 
 export async function POST() {
-  deleteShopifyCredentials();
+  await deleteShopifyCredentials();
   await setIntegrationStatus({
     integrationId: "shopify",
     status: "disconnected",

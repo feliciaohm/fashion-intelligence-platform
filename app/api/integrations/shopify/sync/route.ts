@@ -12,7 +12,7 @@ async function refreshTable(table: string, rows: Record<string, unknown>[]) {
 }
 
 export async function POST() {
-  const creds = readShopifyCredentials();
+  const creds = await readShopifyCredentials();
   if (!creds) {
     return NextResponse.json({ error: "Shopify is not connected yet" }, { status: 400 });
   }

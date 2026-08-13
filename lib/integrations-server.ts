@@ -1,14 +1,15 @@
-import fs from "fs";
-import path from "path";
 import { bigquery } from "@/lib/bigquery";
 import { IntegrationId, IntegrationStatus } from "@/lib/integrations";
+import { getConfig, setConfig, deleteConfig } from "@/lib/config-store";
 
 const PROJECT = "project-cb954e13-3b16-432f-aa7.analytics_lab";
 
 // Credentials never touch BigQuery (query results are visible to anyone who
-// can run a query) and never touch the client bundle. They live in a local,
-// gitignored file only the server process reads -- same pattern as key.json.
-const CREDENTIALS_DIR = path.join(process.cwd(), ".credentials");
+// can run a query) and never touch the client bundle. They used to live in
+// a local, gitignored file (same pattern as key.json), but that breaks on
+// Vercel -- the deployed function's filesystem is read-only outside /tmp,
+// confirmed directly by a real ENOENT trying to write there in production.
+// Now backed by lib/config-store.ts (Supabase, service-role only).
 
 interface ShopifyCredentials {
   shopDomain: string;
@@ -34,74 +35,40 @@ interface Ga4Credentials {
   serviceAccountPrivateKey: string;
 }
 
-function credentialsPath(name: string) {
-  return path.join(CREDENTIALS_DIR, `${name}.json`);
+export async function readShopifyCredentials(): Promise<ShopifyCredentials | null> {
+  return getConfig<ShopifyCredentials>("shopify_credentials");
 }
 
-export function readShopifyCredentials(): ShopifyCredentials | null {
-  try {
-    const raw = fs.readFileSync(credentialsPath("shopify"), "utf8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+export async function writeShopifyCredentials(creds: ShopifyCredentials) {
+  await setConfig("shopify_credentials", creds);
 }
 
-export function writeShopifyCredentials(creds: ShopifyCredentials) {
-  fs.mkdirSync(CREDENTIALS_DIR, { recursive: true });
-  fs.writeFileSync(credentialsPath("shopify"), JSON.stringify(creds), { mode: 0o600 });
+export async function deleteShopifyCredentials() {
+  await deleteConfig("shopify_credentials");
 }
 
-export function deleteShopifyCredentials() {
-  try {
-    fs.unlinkSync(credentialsPath("shopify"));
-  } catch {
-    // already gone
-  }
+export async function readKlaviyoCredentials(): Promise<KlaviyoCredentials | null> {
+  return getConfig<KlaviyoCredentials>("klaviyo_credentials");
 }
 
-export function readKlaviyoCredentials(): KlaviyoCredentials | null {
-  try {
-    const raw = fs.readFileSync(credentialsPath("klaviyo"), "utf8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+export async function writeKlaviyoCredentials(creds: KlaviyoCredentials) {
+  await setConfig("klaviyo_credentials", creds);
 }
 
-export function writeKlaviyoCredentials(creds: KlaviyoCredentials) {
-  fs.mkdirSync(CREDENTIALS_DIR, { recursive: true });
-  fs.writeFileSync(credentialsPath("klaviyo"), JSON.stringify(creds), { mode: 0o600 });
+export async function deleteKlaviyoCredentials() {
+  await deleteConfig("klaviyo_credentials");
 }
 
-export function deleteKlaviyoCredentials() {
-  try {
-    fs.unlinkSync(credentialsPath("klaviyo"));
-  } catch {
-    // already gone
-  }
+export async function readGa4Credentials(): Promise<Ga4Credentials | null> {
+  return getConfig<Ga4Credentials>("ga4_credentials");
 }
 
-export function readGa4Credentials(): Ga4Credentials | null {
-  try {
-    const raw = fs.readFileSync(credentialsPath("ga4"), "utf8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+export async function writeGa4Credentials(creds: Ga4Credentials) {
+  await setConfig("ga4_credentials", creds);
 }
 
-export function writeGa4Credentials(creds: Ga4Credentials) {
-  fs.mkdirSync(CREDENTIALS_DIR, { recursive: true });
-  fs.writeFileSync(credentialsPath("ga4"), JSON.stringify(creds), { mode: 0o600 });
-}
-
-export function deleteGa4Credentials() {
-  try {
-    fs.unlinkSync(credentialsPath("ga4"));
-  } catch {
-    // already gone
-  }
+export async function deleteGa4Credentials() {
+  await deleteConfig("ga4_credentials");
 }
 
 // BigQuery has no simple single-row upsert -- delete-then-insert is fine here

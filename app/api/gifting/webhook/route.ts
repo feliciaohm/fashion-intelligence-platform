@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "sheet must be 'gifts' or 'posts'" }, { status: 400 });
   }
 
-  const urls = readGiftingSheetUrls();
+  const urls = await readGiftingSheetUrls();
   const sheetUrl = sheet === "gifts" ? urls.giftsSheetUrl : urls.postsSheetUrl;
   if (!sheetUrl) {
     return NextResponse.json({ error: `No ${sheet} sheet has been connected yet` }, { status: 400 });

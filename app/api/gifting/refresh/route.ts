@@ -10,7 +10,7 @@ import { readGiftingSheetUrls } from "@/lib/gifting-server";
 // nothing happens until this route runs, which is why the page polls it
 // on an interval rather than claiming instant updates.
 export async function POST(req: Request) {
-  const { giftsSheetUrl, postsSheetUrl } = readGiftingSheetUrls();
+  const { giftsSheetUrl, postsSheetUrl } = await readGiftingSheetUrls();
   const base = new URL(req.url).origin;
   const results: Record<string, unknown> = {};
 

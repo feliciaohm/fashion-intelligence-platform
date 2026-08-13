@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       throw new Error(`GA4 returned ${res.status}: ${text.slice(0, 300)}`);
     }
 
-    writeGa4Credentials({ propertyId, serviceAccountEmail, serviceAccountPrivateKey });
+    await writeGa4Credentials({ propertyId, serviceAccountEmail, serviceAccountPrivateKey });
     await setIntegrationStatus({
       integrationId: "ga4",
       status: "connected",

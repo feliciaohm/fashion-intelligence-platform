@@ -100,7 +100,7 @@ export async function POST(req: Request) {
     // too, not just additions.
     await bigquery.query(`DELETE FROM \`${PROJECT}.gifting_log\` WHERE TRUE`);
     await bigquery.dataset("analytics_lab").table("gifting_log").insert(rows);
-    writeGiftingSheetUrls({ giftsSheetUrl: sheetUrl });
+    await writeGiftingSheetUrls({ giftsSheetUrl: sheetUrl });
 
     return NextResponse.json({ ok: true, rowCount: rows.length, skipped: rawRows.length - rows.length });
   } catch (error) {
