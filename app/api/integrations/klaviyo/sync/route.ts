@@ -20,15 +20,29 @@ export async function POST() {
 
   // Campaign metadata (name, channel, status, send_time, recipients) is a
   // stable, well-documented v3 resource -- pulled first and independently.
+  // Klaviyo's filter API only allows `equals` on messages.channel (not
+  // `any`, despite that being valid syntax elsewhere) -- confirmed live
+  // against a real account: `any(messages.channel,['email','sms'])` returns
+  // a real 400 "'any' is not an allowed filter operator for
+  // messages.channel". Fetching each channel separately and merging is the
+  // correct fix, not a workaround.
   let campaigns: any[] = [];
   try {
-    const res = await fetch(
-      `https://a.klaviyo.com/api/campaigns?filter=${encodeURIComponent("any(messages.channel,['email','sms'])")}&fields[campaign]=name,status,archived,send_time`,
-      { headers }
+    const channels = ["email", "sms"];
+    const perChannel = await Promise.all(
+      channels.map(async (channel) => {
+        const res = await fetch(
+          `https://a.klaviyo.com/api/campaigns?filter=${encodeURIComponent(`equals(messages.channel,'${channel}')`)}&fields[campaign]=name,status,archived,send_time`,
+          { headers }
+        );
+        if (!res.ok) throw new Error(`${channel}: ${res.status} ${await res.text()}`);
+        const data = await res.json();
+        return data.data ?? [];
+      })
     );
-    if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
-    const data = await res.json();
-    campaigns = data.data ?? [];
+    const byId = new Map<string, any>();
+    perChannel.flat().forEach((c: any) => byId.set(c.id, c));
+    campaigns = [...byId.values()];
   } catch (error) {
     await setIntegrationStatus({ integrationId: "klaviyo", status: "error", lastError: String(error) });
     return NextResponse.json({ error: "Failed to fetch campaigns from Klaviyo", details: String(error) }, { status: 500 });

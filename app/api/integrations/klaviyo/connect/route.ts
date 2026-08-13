@@ -4,11 +4,15 @@ import { writeKlaviyoCredentials, setIntegrationStatus } from "@/lib/integration
 const KLAVIYO_REVISION = "2024-10-15";
 
 export async function POST(req: Request) {
-  const { apiKey } = await req.json();
+  const { apiKey: rawApiKey } = await req.json();
 
-  if (!apiKey) {
+  if (!rawApiKey) {
     return NextResponse.json({ error: "API key is required" }, { status: 400 });
   }
+  // Trim -- confirmed a real pasted key can carry a trailing space (browser
+  // paste behavior), which Klaviyo's API tolerates but is worth stripping
+  // before storing rather than relying on that leniency.
+  const apiKey = String(rawApiKey).trim();
 
   try {
     // Real Klaviyo API call -- the actual connection test, not a simulation.
