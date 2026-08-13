@@ -15,6 +15,25 @@ interface ShopifyCredentials {
   accessToken: string;
 }
 
+interface KlaviyoCredentials {
+  apiKey: string;
+}
+
+// Real GA4 Data API access needs OAuth OR a service account granted Viewer
+// on the specific GA4 property -- the service account route is what's built
+// here, since it needs no OAuth consent screen (no Google app-verification
+// process to go through) and mirrors the same "paste a credential" pattern
+// as Shopify's Admin API token. The service account itself still has to be
+// created in Google Cloud Console (same place the BigQuery service account
+// already lives) and added as a Viewer on the real GA4 property being
+// connected -- that step can't be done from here, same as Shopify's custom
+// app has to be created in the store's own admin first.
+interface Ga4Credentials {
+  propertyId: string;
+  serviceAccountEmail: string;
+  serviceAccountPrivateKey: string;
+}
+
 function credentialsPath(name: string) {
   return path.join(CREDENTIALS_DIR, `${name}.json`);
 }
@@ -36,6 +55,50 @@ export function writeShopifyCredentials(creds: ShopifyCredentials) {
 export function deleteShopifyCredentials() {
   try {
     fs.unlinkSync(credentialsPath("shopify"));
+  } catch {
+    // already gone
+  }
+}
+
+export function readKlaviyoCredentials(): KlaviyoCredentials | null {
+  try {
+    const raw = fs.readFileSync(credentialsPath("klaviyo"), "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function writeKlaviyoCredentials(creds: KlaviyoCredentials) {
+  fs.mkdirSync(CREDENTIALS_DIR, { recursive: true });
+  fs.writeFileSync(credentialsPath("klaviyo"), JSON.stringify(creds), { mode: 0o600 });
+}
+
+export function deleteKlaviyoCredentials() {
+  try {
+    fs.unlinkSync(credentialsPath("klaviyo"));
+  } catch {
+    // already gone
+  }
+}
+
+export function readGa4Credentials(): Ga4Credentials | null {
+  try {
+    const raw = fs.readFileSync(credentialsPath("ga4"), "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function writeGa4Credentials(creds: Ga4Credentials) {
+  fs.mkdirSync(CREDENTIALS_DIR, { recursive: true });
+  fs.writeFileSync(credentialsPath("ga4"), JSON.stringify(creds), { mode: 0o600 });
+}
+
+export function deleteGa4Credentials() {
+  try {
+    fs.unlinkSync(credentialsPath("ga4"));
   } catch {
     // already gone
   }

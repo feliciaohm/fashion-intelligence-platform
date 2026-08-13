@@ -1,0 +1,98 @@
+// Server-only: the free real-AI middle tier, sitting between the paid
+// Anthropic path and the free rule-based fallback (lib/ai-demo-mode.ts).
+// Uses Google's Gemini API via AI Studio (aistudio.google.com) -- genuinely
+// free, no credit card required for a key, no expiration, as confirmed
+// directly (2026-08-08) against Google's current published free-tier terms.
+// Only stays free as long as GEMINI_API_KEY comes from an AI Studio key with
+// no Google Cloud billing account attached to that project -- that's a
+// setting on Google's dashboard, not something this code can enforce, so it
+// has to be a human decision made once when the key is created.
+//
+// Deliberately mirrors the exact shape of the Anthropic calls in
+// app/api/ai-query/route.ts and lib/ai-demo-mode.ts's classifyQuery(): same
+// function signatures, same grounding-context input, same
+// "throw/return-null on any failure, let the caller fall through" contract.
+// That's not an accident -- it's so the three-tier chain (Anthropic ->
+// Gemini -> rule-based) is a real production shape: the day a paying client
+// connects real data and ANTHROPIC_API_KEY gets real credits, the exact same
+// code activates the paid tier automatically. This file doesn't get
+// replaced, it just stops being reached first.
+import { GoogleGenAI } from "@google/genai";
+
+// Kept as an independent literal union (not imported from ai-demo-mode.ts)
+// to avoid a runtime circular import between the two files -- must be kept
+// in sync with QueryCategory in lib/ai-demo-mode.ts by hand.
+export type GeminiQueryCategory = "kpi_lookup" | "reorder" | "scenario" | "general_search";
+
+// Cheapest/highest-quota free-tier model for the one-word routing decision
+// (1,000 requests/day as of the free-tier limits confirmed 2026-08-08).
+const CLASSIFY_MODEL = "gemini-2.5-flash-lite";
+// A step up for the fuller grounded answer -- still free tier (250
+// requests/day), which is what actually matters here since this is a
+// portfolio demo, not production traffic.
+const ANSWER_MODEL = "gemini-2.5-flash";
+
+const VALID_CATEGORIES: GeminiQueryCategory[] = ["kpi_lookup", "reorder", "scenario", "general_search"];
+
+export function isGeminiConfigured(): boolean {
+  return !!process.env.GEMINI_API_KEY;
+}
+
+function client(): GoogleGenAI {
+  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+}
+
+const CLASSIFY_SYSTEM_PROMPT = `You are a query router for a fashion-brand analytics platform. Classify the user's question into exactly one category:
+- kpi_lookup: asks for a specific named metric (GMROI, sell-through, CLV, ROAS, gross margin, churn rate, ROI, revenue by market, etc.)
+- reorder: asks about order quantity, reorder point, or EOQ for a product category
+- scenario: a hypothetical "what if" question (market expansion/entry, a pricing change, a budget shift, pausing an influencer)
+- general_search: anything else -- product, influencer, or customer lookups that are not a single named KPI
+
+Respond with ONLY a JSON object and nothing else: {"category": "kpi_lookup" | "reorder" | "scenario" | "general_search", "confidence": <number between 0 and 1>}`;
+
+// Returns null on ANY failure (bad key, rate limit, malformed response) --
+// never throws. Callers (classifyQuery in ai-demo-mode.ts) treat null as
+// "try the next tier down," exactly like the Anthropic classify call does.
+export async function classifyWithGemini(question: string): Promise<{ category: GeminiQueryCategory; confidence: number } | null> {
+  try {
+    const ai = client();
+    const response = await ai.models.generateContent({
+      model: CLASSIFY_MODEL,
+      contents: question,
+      config: { systemInstruction: CLASSIFY_SYSTEM_PROMPT, maxOutputTokens: 60 },
+    });
+    const raw = (response.text ?? "").trim();
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    const obj = JSON.parse(match[0]);
+    if (!VALID_CATEGORIES.includes(obj.category) || typeof obj.confidence !== "number") return null;
+    return { category: obj.category, confidence: Math.max(0, Math.min(1, obj.confidence)) };
+  } catch (error) {
+    console.error("GEMINI CLASSIFY ERROR (falling back to rule-based classification):", error);
+    return null;
+  }
+}
+
+// Throws on failure (same contract as answerWithClaude in
+// app/api/ai-query/route.ts) -- the route's try/catch is what falls
+// through to demo mode, so this function stays a thin, honest wrapper.
+export async function answerWithGemini(query: string, groundingContext: string): Promise<string> {
+  const ai = client();
+  const response = await ai.models.generateContent({
+    model: ANSWER_MODEL,
+    contents: query,
+    config: {
+      systemInstruction: `You are the analytics assistant for a fashion brand's Fashion Intelligence Platform.
+Answer the user's question using ONLY the data provided below — never invent numbers.
+Be concise and structured: lead with the direct answer, cite the specific figures that support it,
+and format money as €X and ROI as X%. If the data provided cannot answer the question, say so plainly
+instead of guessing.
+
+${groundingContext}`,
+      maxOutputTokens: 700,
+    },
+  });
+  const text = (response.text ?? "").trim();
+  if (!text) throw new Error("Gemini returned an empty response");
+  return text;
+}

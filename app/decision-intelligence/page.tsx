@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
 import CopyInsightButton from "@/components/CopyInsightButton";
 import RelatedPages from "@/components/RelatedPages";
@@ -2359,8 +2359,8 @@ function RfmSegmentationCalculator() {
                   </div>
                 ))}
                 {["High", "Mid", "Low"].map((r) => (
-                  <>
-                    <div key={`label-${r}`} className="panel" style={{ border: "none", fontSize: 11, fontWeight: 600, color: "var(--color-ink-muted)", display: "flex", alignItems: "center" }}>
+                  <Fragment key={`row-${r}`}>
+                    <div className="panel" style={{ border: "none", fontSize: 11, fontWeight: 600, color: "var(--color-ink-muted)", display: "flex", alignItems: "center" }}>
                       R: {r}
                     </div>
                     {["Low", "Mid", "High"].map((fm) => (
@@ -2368,7 +2368,7 @@ function RfmSegmentationCalculator() {
                         <div className="stat-value" style={{ fontSize: 20 }}>{matrix[`${r}|${fm}`] || 0}</div>
                       </div>
                     ))}
-                  </>
+                  </Fragment>
                 ))}
               </div>
 

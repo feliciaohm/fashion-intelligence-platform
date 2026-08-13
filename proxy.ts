@@ -18,6 +18,13 @@ import { createServerClient } from "@supabase/ssr";
 
 const PUBLIC_PATHS = ["/login", "/auth/callback"];
 
+// Real webhook receivers can't carry a browser session cookie (Google Apps
+// Script, Stripe, GitHub, etc. all call in "cold") -- exempted from the
+// session gate here, but NOT from auth entirely: each one verifies its own
+// shared-secret token itself (see app/api/gifting/webhook/route.ts), the
+// same pattern real webhook providers use instead of a login session.
+const WEBHOOK_PATHS = ["/api/gifting/webhook"];
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -44,6 +51,10 @@ export async function proxy(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isPublicPath = PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
+
+  if (WEBHOOK_PATHS.includes(path)) {
+    return response;
+  }
 
   if (!user) {
     if (isPublicPath) return response;

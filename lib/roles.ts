@@ -76,6 +76,8 @@ export const ROLES: RoleConfig[] = [
     tagline: "What's driving revenue, and where the next dollar should go.",
     modules: [
       { href: "/roi", name: "Influencer ROI", desc: "Campaign-level return on every gifted post." },
+      { href: "/visitor-journey", name: "Visitor Journey", desc: "Attribute site visitors to a specific gifted post by timing alone — no tracking links required." },
+      { href: "/gifting-roi", name: "Gifting ROI", desc: "Cross-match a live gifting log against a live posting log to find real ROI per gifted influencer — fed by Google Sheets, updated in near real time." },
       { href: "/intelligence", name: "Command Center", desc: "Search or filter across every module at once." },
       { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Twenty-five calculators covering revenue forecasting, campaign analysis, CLV, CAC, churn, market sizing, store NPV, and more — the decisions that actually matter." },
       { href: "/benchmarks", name: "Benchmark Intelligence", desc: "How Maison Lumière compares to real, sourced luxury industry benchmarks." },
@@ -125,6 +127,8 @@ export const ROLES: RoleConfig[] = [
     modules: [
       { href: "/roi", name: "Influencer ROI", desc: "Campaign-level return on every gifted post." },
       { href: "/dashboard", name: "Campaign Performance", desc: "The full post → visitor → return → purchase funnel, live." },
+      { href: "/visitor-journey", name: "Visitor Journey", desc: "Attribute site visitors to a specific gifted post by timing alone — no tracking links required." },
+      { href: "/gifting-roi", name: "Gifting ROI", desc: "Cross-match a live gifting log against a live posting log to find real ROI per gifted influencer — fed by Google Sheets, updated in near real time." },
       { href: "/customer-journey", name: "Customer Journey", desc: "First touch to purchase — including social/organic attribution." },
       { href: "/cost-centers", name: "Marketing Budget vs. Actual", desc: "Marketing department spend vs. plan, monthly." },
     ],
@@ -220,7 +224,14 @@ export async function setStoredRole(id: RoleId | null): Promise<void> {
     data: { user },
   } = await supabase.auth.getUser();
   if (user) {
-    await supabase.from("profiles").update({ role: id }).eq("id", user.id);
+    // Previously unchecked -- a real Postgres GRANT/RLS error here (the same
+    // class of issue diagnosed for the profiles table read path) was
+    // silently swallowed, leaving the caller (Onboarding's submit button)
+    // stuck showing "Setting up..." forever with no visible error. Throwing
+    // here lets the caller catch it and actually tell the user something
+    // went wrong instead of hanging indefinitely.
+    const { error } = await supabase.from("profiles").update({ role: id }).eq("id", user.id);
+    if (error) throw error;
   }
   window.dispatchEvent(new Event(ROLE_CHANGE_EVENT));
 }

@@ -7,6 +7,7 @@ import ExportCsvButton from "@/components/ExportCsvButton";
 import PrintButton from "@/components/PrintButton";
 import RelatedPages from "@/components/RelatedPages";
 import { DIMENSION_LABELS, DimensionKey, FilterTag } from "@/lib/intelligence";
+import { DEMO_EXAMPLE_QUESTIONS } from "@/lib/ai-demo-questions";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 import EmptyState from "@/components/EmptyState";
 
@@ -69,6 +70,14 @@ function IntelligencePageInner() {
   const [askAnswer, setAskAnswer] = useState<string | null>(null);
   const [askError, setAskError] = useState<string | null>(null);
   const [askDemoMode, setAskDemoMode] = useState(false);
+  const [askProvider, setAskProvider] = useState<"claude" | "gemini" | "demo-mode" | null>(null);
+  const [askStats, setAskStats] = useState<KpiItem[]>([]);
+  const [askFilters, setAskFilters] = useState<{ country?: string; product?: string; influencer?: string; quarter?: string }>({});
+  // The last question actually submitted (kept even after the search box is
+  // cleared) -- lets the answer panel silently re-run itself whenever the
+  // active filters change, instead of requiring you to retype and press
+  // Enter again just to see the same question re-scoped to a new filter.
+  const [lastAskedQuestion, setLastAskedQuestion] = useState<string | null>(null);
 
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
@@ -139,6 +148,18 @@ function IntelligencePageInner() {
     return matches.slice(0, 8);
   }, [dimensions, searchText]);
 
+  // Question autocomplete: only considered once no filter-value match exists
+  // (a real influencer/product/country name always wins first). Shows the
+  // FULL list of all 10 real questions the moment there's no keyword match,
+  // not a filtered subset -- there are only 10 total, so browsing the whole
+  // list is more useful than guessing which words will surface which
+  // question, and it's what was explicitly asked for over narrowing to
+  // partial-word matches only.
+  const questionSuggestions = useMemo(() => {
+    if (!searchText.trim() || suggestions.length > 0) return [];
+    return DEMO_EXAMPLE_QUESTIONS;
+  }, [searchText, suggestions]);
+
   function addFilter(tag: FilterTag) {
     setActiveFilters((prev) => (prev.some((f) => tagKey(f) === tagKey(tag)) ? prev : [...prev, tag]));
     setSearchText("");
@@ -155,11 +176,24 @@ function IntelligencePageInner() {
     setAskAnswer(null);
     setAskError(null);
     setAskDemoMode(false);
+    setAskProvider(null);
+    setAskStats([]);
+    setLastAskedQuestion(question);
+    // Four dimensions thread through -- the ones the AI engine can honestly
+    // act on today (see AiFilters in lib/ai-demo-mode.ts for exactly which
+    // metrics each one applies to, and why "store" and a separate
+    // "campaign" don't exist as real filters). "time_period" here is a
+    // quarter (e.g. "Q2 2026"), the real "date span" filter.
+    const country = activeFilters.find((f) => f.dimension === "country")?.value;
+    const product = activeFilters.find((f) => f.dimension === "product")?.value;
+    const influencer = activeFilters.find((f) => f.dimension === "influencer")?.value;
+    const quarter = activeFilters.find((f) => f.dimension === "time_period")?.value;
+    setAskFilters({ country, product, influencer, quarter });
     try {
       const res = await fetch("/api/ai-query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: question }),
+        body: JSON.stringify({ query: question, filters: { country, product, influencer, quarter } }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -167,6 +201,8 @@ function IntelligencePageInner() {
       } else {
         setAskAnswer(json.answer);
         setAskDemoMode(Boolean(json.demoMode));
+        setAskProvider(json.provider === "claude" || json.provider === "gemini" || json.provider === "demo-mode" ? json.provider : null);
+        setAskStats(Array.isArray(json.stats) ? json.stats.map((s: { label: string; value: string }) => ({ label: s.label, value: s.value })) : []);
       }
     } catch (e) {
       setAskError(String(e));
@@ -176,6 +212,19 @@ function IntelligencePageInner() {
       setShowSuggestions(false);
     }
   }
+
+  // Real-time re-ask: whenever the active filters change (drag/click a chip
+  // in, or remove one), silently re-run whatever AI question was last asked
+  // with the new filters -- no retyping, no pressing Enter again. The
+  // filter-palette table results below already did this (see the
+  // useEffect keyed on activeFilters above); this is the same behavior for
+  // the AI answer panel specifically. Guarded on lastAskedQuestion so this
+  // never fires before any question has actually been asked.
+  useEffect(() => {
+    if (!lastAskedQuestion) return;
+    runAiQuestion(lastAskedQuestion);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFilters]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -286,10 +335,65 @@ function IntelligencePageInner() {
           </div>
         )}
 
-        {searchText.trim() && suggestions.length === 0 && (
+        {searchText.trim() && suggestions.length === 0 && questionSuggestions.length > 0 && (
+          <div
+            className="panel"
+            style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 20, padding: 6 }}
+          >
+            <div className="text-muted" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", padding: "4px 10px" }}>
+              All questions I can answer — click one
+            </div>
+            {questionSuggestions.map((q) => (
+              <div
+                key={q}
+                onClick={() => runAiQuestion(q)}
+                style={{ padding: "8px 10px", cursor: "pointer", fontSize: 13 }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-accent-soft)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                {q}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {searchText.trim() && suggestions.length === 0 && questionSuggestions.length === 0 && (
           <p className="text-muted" style={{ marginTop: 6, fontSize: 12 }}>
             No matching keyword — press Enter to ask this as a question instead.
           </p>
+        )}
+
+        {!askLoading && !askAnswer && !askError && (
+          <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <span className="text-muted" style={{ fontSize: 11, alignSelf: "center", marginRight: 2 }}>
+              Try asking:
+            </span>
+            {DEMO_EXAMPLE_QUESTIONS.map((q) => (
+              <button
+                key={q}
+                type="button"
+                onClick={() => {
+                  setSearchText(q);
+                  setShowSuggestions(false);
+                  runAiQuestion(q);
+                }}
+                className="chip-button"
+                style={{
+                  fontSize: 12,
+                  padding: "5px 10px",
+                  borderRadius: 999,
+                  border: "1px solid var(--color-border)",
+                  background: "transparent",
+                  cursor: "pointer",
+                  color: "inherit",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-accent-soft)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
@@ -307,8 +411,23 @@ function IntelligencePageInner() {
           {askAnswer && (
             <div className="panel">
               <div className="stat-label" style={{ marginBottom: 8 }}>
-                Answer {askDemoMode ? "· Demo Mode — real data, rule-based" : "· AI-generated (Claude)"}
+                Answer ·{" "}
+                {askProvider === "gemini"
+                  ? "AI-generated (Gemini — free tier)"
+                  : askProvider === "claude"
+                  ? "AI-generated (Claude)"
+                  : "Demo Mode — real data, rule-based"}
               </div>
+              {(askFilters.country || askFilters.product || askFilters.influencer || askFilters.quarter) && (
+                <p className="text-muted" style={{ fontSize: 12, marginBottom: 10 }}>
+                  Filtered to: {[askFilters.influencer, askFilters.product, askFilters.country, askFilters.quarter].filter(Boolean).join(" · ")}
+                </p>
+              )}
+              {askStats.length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                  <KpiStrip items={askStats} />
+                </div>
+              )}
               <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{askAnswer}</div>
             </div>
           )}

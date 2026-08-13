@@ -70,3 +70,49 @@ CREATE TABLE IF NOT EXISTS `project-cb954e13-3b16-432f-aa7.analytics_lab.excel_p
   row_index INT64,
   row_json STRING
 );
+
+-- Phase 2 real connectors (added later the same night): Klaviyo, GA4, Google
+-- Sheets. Same discipline as above -- empty schemas, populated only by a
+-- real account/sheet a user actually connects, never synthetic data.
+
+CREATE TABLE IF NOT EXISTS `project-cb954e13-3b16-432f-aa7.analytics_lab.klaviyo_campaigns` (
+  campaign_id STRING,
+  name STRING,
+  channel STRING,       -- 'email' | 'sms', from Klaviyo's real campaign-message channel
+  status STRING,
+  send_time TIMESTAMP,
+  recipients INT64,
+  opens INT64,
+  open_rate FLOAT64,
+  clicks INT64,
+  click_rate FLOAT64,
+  revenue FLOAT64,
+  synced_at TIMESTAMP
+);
+
+-- GA4 Data API's runReport returns rows keyed by whatever dimensions are
+-- requested -- date + source/medium is the standard "where did sessions
+-- come from" breakdown, matching the grain the rest of this platform's
+-- channel-level tables already use.
+CREATE TABLE IF NOT EXISTS `project-cb954e13-3b16-432f-aa7.analytics_lab.ga4_sessions` (
+  session_date DATE,
+  session_source STRING,
+  session_medium STRING,
+  sessions INT64,
+  active_users INT64,
+  conversions INT64,
+  total_revenue FLOAT64,
+  synced_at TIMESTAMP
+);
+
+-- Same schema-less (sheet, row, json) pattern as excel_pnl_imports, on
+-- purpose -- Google Sheets, imported "like Excel" (one-shot paste-and-import,
+-- not a persistent OAuth connection), can have any layout.
+CREATE TABLE IF NOT EXISTS `project-cb954e13-3b16-432f-aa7.analytics_lab.google_sheets_imports` (
+  import_id STRING,
+  sheet_url STRING,
+  imported_at TIMESTAMP,
+  sheet_name STRING,
+  row_index INT64,
+  row_json STRING
+);

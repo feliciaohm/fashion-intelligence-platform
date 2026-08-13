@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ExcelUploadZone from "@/components/ExcelUploadZone";
+import GoogleSheetsImportZone from "@/components/GoogleSheetsImportZone";
 import RelatedPages from "@/components/RelatedPages";
 import TotpSettings from "@/components/TotpSettings";
 import RoleSettings from "@/components/RoleSettings";
@@ -196,20 +197,293 @@ function ExcelCard({ status, onChange }: { status: IntegrationStatus; onChange: 
   );
 }
 
-function ComingSoonCard({ id }: { id: "ga4" | "google_sheets" }) {
-  const meta = INTEGRATION_META[id];
+function KlaviyoCard({ status, onChange }: { status: IntegrationStatus; onChange: () => void }) {
+  const [apiKey, setApiKey] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+
+  async function connect(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setFormError(null);
+    try {
+      const res = await fetch("/api/integrations/klaviyo/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setApiKey("");
+      onChange();
+    } catch (err) {
+      setFormError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function sync() {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch("/api/integrations/klaviyo/sync", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setSyncResult(`Synced: ${json.results.campaigns} campaigns${json.errors?.length ? ` — ${json.errors.length} issue(s)` : ""}`);
+      onChange();
+    } catch (err) {
+      setSyncResult(`Sync failed: ${String(err instanceof Error ? err.message : err)}`);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  async function disconnect() {
+    await fetch("/api/integrations/klaviyo/disconnect", { method: "POST" });
+    setSyncResult(null);
+    onChange();
+  }
+
   return (
-    <div className="panel" style={{ opacity: 0.6 }}>
+    <div className="panel">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
         <div>
-          <div style={{ fontWeight: 600, fontSize: 15 }}>{meta.name}</div>
-          <p className="text-muted" style={{ marginTop: 4 }}>{meta.description}</p>
+          <div style={{ fontWeight: 600, fontSize: 15 }}>{INTEGRATION_META.klaviyo.name}</div>
+          <p className="text-muted" style={{ marginTop: 4 }}>{INTEGRATION_META.klaviyo.description}</p>
         </div>
-        <span className="badge">coming soon</span>
+        <StatusBadge status={status.status} />
       </div>
-      <button type="button" className="btn-ghost" disabled>
-        Connect
-      </button>
+
+      {status.status === "connected" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span className="text-muted">Account</span>
+            <span>{status.displayName}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span className="text-muted">Last synced</span>
+            <span>{formatDate(status.lastSyncedAt)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span className="text-muted">Campaigns on last sync</span>
+            <span>{status.lastSyncRows ?? "—"}</span>
+          </div>
+          {status.lastError && <p style={{ color: "var(--status-critical)", fontSize: 12 }}>{status.lastError}</p>}
+          <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+            <button type="button" className="btn" onClick={sync} disabled={syncing}>
+              {syncing ? "Syncing…" : "Sync Now"}
+            </button>
+            <button type="button" className="btn-ghost" onClick={disconnect}>
+              Disconnect
+            </button>
+          </div>
+          {syncResult && <p className="text-muted" style={{ marginTop: 6 }}>{syncResult}</p>}
+        </div>
+      ) : (
+        <form onSubmit={connect} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>
+              Private API key
+            </label>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="pk_..."
+              required
+              style={{ width: "100%" }}
+            />
+            <p className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>
+              Klaviyo account → Settings → API Keys → Create Private API Key. Stored locally on the server only,
+              never in BigQuery.
+            </p>
+          </div>
+          {formError && <p style={{ color: "var(--status-critical)", fontSize: 12 }}>{formError}</p>}
+          <button type="submit" className="btn" disabled={loading} style={{ alignSelf: "flex-start" }}>
+            {loading ? "Connecting…" : "Connect"}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function Ga4Card({ status, onChange }: { status: IntegrationStatus; onChange: () => void }) {
+  const [propertyId, setPropertyId] = useState("");
+  const [serviceAccountEmail, setServiceAccountEmail] = useState("");
+  const [serviceAccountPrivateKey, setServiceAccountPrivateKey] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+
+  async function connect(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setFormError(null);
+    try {
+      const res = await fetch("/api/integrations/ga4/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId, serviceAccountEmail, serviceAccountPrivateKey }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setServiceAccountPrivateKey("");
+      onChange();
+    } catch (err) {
+      setFormError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function sync() {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch("/api/integrations/ga4/sync", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setSyncResult(`Synced: ${json.results.sessions} session rows (90 days)`);
+      onChange();
+    } catch (err) {
+      setSyncResult(`Sync failed: ${String(err instanceof Error ? err.message : err)}`);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  async function disconnect() {
+    await fetch("/api/integrations/ga4/disconnect", { method: "POST" });
+    setSyncResult(null);
+    onChange();
+  }
+
+  return (
+    <div className="panel">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+        <div>
+          <div style={{ fontWeight: 600, fontSize: 15 }}>{INTEGRATION_META.ga4.name}</div>
+          <p className="text-muted" style={{ marginTop: 4 }}>{INTEGRATION_META.ga4.description}</p>
+        </div>
+        <StatusBadge status={status.status} />
+      </div>
+
+      {status.status === "connected" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13 }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span className="text-muted">Property</span>
+            <span>{status.displayName}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span className="text-muted">Last synced</span>
+            <span>{formatDate(status.lastSyncedAt)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span className="text-muted">Rows on last sync</span>
+            <span>{status.lastSyncRows ?? "—"}</span>
+          </div>
+          {status.lastError && <p style={{ color: "var(--status-critical)", fontSize: 12 }}>{status.lastError}</p>}
+          <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+            <button type="button" className="btn" onClick={sync} disabled={syncing}>
+              {syncing ? "Syncing…" : "Sync Now"}
+            </button>
+            <button type="button" className="btn-ghost" onClick={disconnect}>
+              Disconnect
+            </button>
+          </div>
+          {syncResult && <p className="text-muted" style={{ marginTop: 6 }}>{syncResult}</p>}
+        </div>
+      ) : (
+        <form onSubmit={connect} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>
+              GA4 Property ID
+            </label>
+            <input
+              type="text"
+              value={propertyId}
+              onChange={(e) => setPropertyId(e.target.value)}
+              placeholder="123456789"
+              required
+              style={{ width: "100%" }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>
+              Service account email
+            </label>
+            <input
+              type="text"
+              value={serviceAccountEmail}
+              onChange={(e) => setServiceAccountEmail(e.target.value)}
+              placeholder="name@project.iam.gserviceaccount.com"
+              required
+              style={{ width: "100%" }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>
+              Service account private key
+            </label>
+            <textarea
+              value={serviceAccountPrivateKey}
+              onChange={(e) => setServiceAccountPrivateKey(e.target.value)}
+              placeholder="-----BEGIN PRIVATE KEY-----..."
+              required
+              rows={4}
+              style={{ width: "100%", fontFamily: "monospace", fontSize: 11 }}
+            />
+            <p className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>
+              Google Cloud Console → IAM & Admin → Service Accounts → create one, enable the Google Analytics
+              Data API, then add that service account&apos;s email as a Viewer under this GA4 property&apos;s
+              Admin → Property Access Management. No OAuth consent screen needed. Stored locally on the server
+              only, never in BigQuery.
+            </p>
+          </div>
+          {formError && <p style={{ color: "var(--status-critical)", fontSize: 12 }}>{formError}</p>}
+          <button type="submit" className="btn" disabled={loading} style={{ alignSelf: "flex-start" }}>
+            {loading ? "Connecting…" : "Connect"}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function GoogleSheetsCard({ status, onChange }: { status: IntegrationStatus; onChange: () => void }) {
+  return (
+    <div className="panel">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+        <div>
+          <div style={{ fontWeight: 600, fontSize: 15 }}>{INTEGRATION_META.google_sheets.name}</div>
+          <p className="text-muted" style={{ marginTop: 4 }}>{INTEGRATION_META.google_sheets.description}</p>
+        </div>
+        <StatusBadge status={status.status} />
+      </div>
+
+      {status.status === "connected" && (
+        <div style={{ fontSize: 13, marginBottom: 14, display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span className="text-muted">Last sheet</span>
+            <span>{status.displayName}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span className="text-muted">Last imported</span>
+            <span>{formatDate(status.lastSyncedAt)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span className="text-muted">Rows</span>
+            <span>{status.lastSyncRows ?? "—"}</span>
+          </div>
+        </div>
+      )}
+
+      <GoogleSheetsImportZone onImported={onChange} />
     </div>
   );
 }
@@ -296,7 +570,9 @@ export default function SettingsPage() {
             };
             if (id === "shopify") return <ShopifyCard key={id} status={status} onChange={refresh} />;
             if (id === "excel") return <ExcelCard key={id} status={status} onChange={refresh} />;
-            return <ComingSoonCard key={id} id={id} />;
+            if (id === "klaviyo") return <KlaviyoCard key={id} status={status} onChange={refresh} />;
+            if (id === "ga4") return <Ga4Card key={id} status={status} onChange={refresh} />;
+            return <GoogleSheetsCard key={id} status={status} onChange={refresh} />;
           })}
         </div>
       )}

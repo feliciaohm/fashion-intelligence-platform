@@ -12,6 +12,8 @@ const links = [
     items: [
       { href: "/executive", label: "Executive Summary" },
       { href: "/dashboard", label: "Dashboard" },
+      { href: "/visitor-journey", label: "Visitor Journey" },
+      { href: "/gifting-roi", label: "Gifting ROI" },
       { href: "/roi", label: "Influencer ROI" },
     ],
   },

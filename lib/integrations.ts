@@ -3,7 +3,7 @@
 // imported by both a "use client" page and API routes must never pull in
 // Node-only deps, or the client bundle breaks).
 
-export type IntegrationId = "shopify" | "ga4" | "excel" | "google_sheets";
+export type IntegrationId = "shopify" | "ga4" | "excel" | "google_sheets" | "klaviyo";
 
 export interface IntegrationStatus {
   integrationId: IntegrationId;
@@ -29,16 +29,21 @@ export const INTEGRATION_META: Record<
     description: "Drag and drop a P&L or any spreadsheet — read and displayed instantly.",
     available: true,
   },
+  klaviyo: {
+    name: "Klaviyo",
+    description: "Pull real email/SMS campaign performance — opens, clicks, revenue — automatically.",
+    available: true,
+  },
   ga4: {
     name: "Google Analytics 4",
-    description: "Pull real sessions, events, and conversions automatically.",
-    available: false,
+    description: "Pull real sessions, traffic sources, and conversions via a service account — no OAuth consent screen required.",
+    available: true,
   },
   google_sheets: {
     name: "Google Sheets",
-    description: "Connect a sheet and the platform reads it as a live data source.",
-    available: false,
+    description: "Paste a shared sheet's link and import it instantly — works exactly like Excel import, just from a URL instead of a file.",
+    available: true,
   },
 };
 
-export const INTEGRATION_ORDER: IntegrationId[] = ["shopify", "excel", "ga4", "google_sheets"];
+export const INTEGRATION_ORDER: IntegrationId[] = ["shopify", "excel", "klaviyo", "ga4", "google_sheets"];

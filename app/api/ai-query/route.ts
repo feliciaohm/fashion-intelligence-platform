@@ -1,35 +1,76 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { bigquery } from "@/lib/bigquery";
-import { tryDemoAnswer, demoModeUnavailableMessage } from "@/lib/ai-demo-mode";
+import { tryDemoAnswer, demoModeUnavailableMessage, type AiFilters } from "@/lib/ai-demo-mode";
+import { isGeminiConfigured, answerWithGemini } from "@/lib/gemini-server";
 
 export async function POST(req: Request) {
-  const { query } = await req.json();
+  const { query, filters: rawFilters } = await req.json();
 
   if (!query || typeof query !== "string") {
     return NextResponse.json({ error: "Missing query" }, { status: 400 });
   }
 
-  // Try the real Claude API first whenever a key is configured -- if it's
-  // set and has credits, this is the only path that ever runs, and demo
-  // mode never activates. If the call fails for any reason (no credits, key
-  // revoked, network issue), fall through to demo mode below instead of
-  // surfacing a dead-end error.
+  // Command Center's active Filter Palette selections, narrowed to the
+  // dimensions AI answers can honestly act on (see AiFilters in
+  // lib/ai-demo-mode.ts for exactly why only these four, and why not e.g.
+  // "store" or a separate "campaign" -- there's no such column).
+  const filters: AiFilters = {
+    country: typeof rawFilters?.country === "string" ? rawFilters.country : undefined,
+    product: typeof rawFilters?.product === "string" ? rawFilters.product : undefined,
+    influencer: typeof rawFilters?.influencer === "string" ? rawFilters.influencer : undefined,
+    quarter: typeof rawFilters?.quarter === "string" ? rawFilters.quarter : undefined,
+  };
+  const activeFilterParts = [
+    filters.country && `country = ${filters.country}`,
+    filters.product && `product = ${filters.product}`,
+    filters.influencer && `influencer = ${filters.influencer}`,
+    filters.quarter && `quarter = ${filters.quarter}`,
+  ].filter(Boolean);
+  const filterInstruction = activeFilterParts.length
+    ? `[Active filter: ${activeFilterParts.join(", ")}. Answer scoped to this filter using only the real data below that matches it. If the specific metric asked about has no way to be broken down by this filter in the data provided, say so plainly instead of guessing or ignoring the filter silently.]\n\n`
+    : "";
+
+  // Three tiers, tried in order, each falling through to the next on any
+  // failure -- never a dead end.
+  //   1. Real Claude (ANTHROPIC_API_KEY) -- the paid, real-client tier.
+  //   2. Real Gemini via Google AI Studio (GEMINI_API_KEY) -- genuinely
+  //      free, see lib/gemini-server.ts for the terms this relies on. Uses
+  //      the exact same grounding data as tier 1 (buildGroundingContext,
+  //      below) so swapping providers never changes what the model can see.
+  //   3. The free rule-based demo-mode engine (lib/ai-demo-mode.ts) --
+  //      always available, no key required, and the only tier with actual
+  //      per-metric filter logic (real joins/WHERE clauses) rather than
+  //      relying on the model to self-scope from an instruction.
   if (process.env.ANTHROPIC_API_KEY) {
     try {
-      const answer = await answerWithClaude(query);
-      return NextResponse.json({ ...answer, demoMode: false });
+      const answer = await answerWithClaude(filterInstruction + query);
+      return NextResponse.json({ ...answer, demoMode: false, provider: "claude" });
     } catch (error) {
-      console.error("AI QUERY ERROR (falling back to demo mode):", error);
+      console.error("AI QUERY ERROR (Claude, falling back):", error);
+    }
+  }
+
+  if (isGeminiConfigured()) {
+    try {
+      const { context, rowsUsed } = await buildGroundingContext();
+      const answer = await answerWithGemini(filterInstruction + query, context);
+      return NextResponse.json({ answer, rowsUsed, demoMode: false, provider: "gemini" });
+    } catch (error) {
+      console.error("AI QUERY ERROR (Gemini, falling back to demo mode):", error);
     }
   }
 
   try {
-    const demo = await tryDemoAnswer(query);
+    const demo = await tryDemoAnswer(query, filters);
     return NextResponse.json({
       answer: demo?.answer ?? demoModeUnavailableMessage(),
       demoMode: true,
+      provider: "demo-mode",
       matchedPattern: demo?.matchedPattern ?? "none",
+      stats: demo?.stats ?? [],
+      category: demo?.category ?? null,
+      classificationConfidence: demo?.classificationConfidence ?? null,
     });
   } catch (error) {
     console.error("DEMO MODE ERROR:", error);
@@ -37,7 +78,12 @@ export async function POST(req: Request) {
   }
 }
 
-async function answerWithClaude(query: string): Promise<{ answer: string; rowsUsed: number }> {
+// Real BigQuery data both answerWithClaude and answerWithGemini ground their
+// answer in -- pulled out so the two providers can never see different data,
+// only a different model behind the same context. This is also what a real
+// client's data would flow through unchanged: swap in their tables, both
+// providers keep working from this same function.
+async function buildGroundingContext(): Promise<{ context: string; rowsUsed: number }> {
   const campaignsQuery = `
     SELECT influencer, product_slug, platform, content_type, country, post_date,
       gifted_cost, purchases, total_revenue, roi_pct
@@ -67,6 +113,21 @@ async function answerWithClaude(query: string): Promise<{ answer: string; rowsUs
     bigquery.query(countriesQuery),
   ]);
 
+  const context = `INFLUENCER CAMPAIGNS (influencer_product_performance, ${campaigns.length} rows):
+${JSON.stringify(campaigns)}
+
+PRODUCTS (product_full_stack, ${products.length} rows):
+${JSON.stringify(products)}
+
+COUNTRY PERFORMANCE (real purchases grouped by country, sales_events, ${countries.length} rows):
+${JSON.stringify(countries)}`;
+
+  return { context, rowsUsed: campaigns.length + products.length + countries.length };
+}
+
+async function answerWithClaude(query: string): Promise<{ answer: string; rowsUsed: number }> {
+  const { context, rowsUsed } = await buildGroundingContext();
+
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   const message = await anthropic.messages.create({
@@ -78,14 +139,7 @@ Be concise and structured: lead with the direct answer, cite the specific figure
 and format money as $X and ROI as X%. If the data provided cannot answer the question, say so plainly
 instead of guessing.
 
-INFLUENCER CAMPAIGNS (influencer_product_performance, ${campaigns.length} rows):
-${JSON.stringify(campaigns)}
-
-PRODUCTS (product_full_stack, ${products.length} rows):
-${JSON.stringify(products)}
-
-COUNTRY PERFORMANCE (real purchases grouped by country, sales_events, ${countries.length} rows):
-${JSON.stringify(countries)}`,
+${context}`,
     messages: [{ role: "user", content: query }],
   });
 
@@ -94,5 +148,5 @@ ${JSON.stringify(countries)}`,
     .map((block) => (block as any).text)
     .join("\n");
 
-  return { answer, rowsUsed: campaigns.length + products.length + countries.length };
+  return { answer, rowsUsed };
 }
