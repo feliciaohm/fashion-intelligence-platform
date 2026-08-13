@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 import { JWT } from "google-auth-library";
 import { writeGa4Credentials, setIntegrationStatus } from "@/lib/integrations-server";
+import { normalizeGa4PrivateKey } from "@/lib/ga4-key";
 
 async function getAccessToken(serviceAccountEmail: string, serviceAccountPrivateKey: string): Promise<string> {
   // Service-account JWT auth -- no OAuth consent screen needed, the same
-  // reason this route exists instead of a full OAuth flow. The private key
-  // pasted from a downloaded GCP JSON key often arrives with literal "\n"
-  // sequences instead of real newlines (depends on how it was copied) --
-  // normalized here defensively, same fix used for pasted PEM keys generally.
-  const key = serviceAccountPrivateKey.replace(/\\n/g, "\n");
+  // reason this route exists instead of a full OAuth flow.
+  const key = normalizeGa4PrivateKey(serviceAccountPrivateKey);
   const client = new JWT({
     email: serviceAccountEmail,
     key,
@@ -53,7 +51,14 @@ export async function POST(req: Request) {
       throw new Error(`GA4 returned ${res.status}: ${text.slice(0, 300)}`);
     }
 
-    await writeGa4Credentials({ propertyId, serviceAccountEmail, serviceAccountPrivateKey });
+    // Store the normalized key, not the raw pasted text -- so the sync
+    // route reads back something already clean instead of needing to
+    // re-normalize (and potentially drift from this route's logic) later.
+    await writeGa4Credentials({
+      propertyId,
+      serviceAccountEmail,
+      serviceAccountPrivateKey: normalizeGa4PrivateKey(serviceAccountPrivateKey),
+    });
     await setIntegrationStatus({
       integrationId: "ga4",
       status: "connected",

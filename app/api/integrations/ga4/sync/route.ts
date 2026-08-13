@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { JWT } from "google-auth-library";
 import { replaceTableRows } from "@/lib/bigquery";
 import { readGa4Credentials, setIntegrationStatus } from "@/lib/integrations-server";
+import { normalizeGa4PrivateKey } from "@/lib/ga4-key";
 
 function ga4DateToIso(ga4Date: string): string {
   // GA4 returns dates as "YYYYMMDD" with no separators.
@@ -15,7 +16,10 @@ export async function POST() {
   }
 
   try {
-    const key = creds.serviceAccountPrivateKey.replace(/\\n/g, "\n");
+    // Normalized defensively even though connect/route.ts now stores an
+    // already-normalized key -- harmless no-op on an already-clean key,
+    // and stays correct for anything connected before this fix existed.
+    const key = normalizeGa4PrivateKey(creds.serviceAccountPrivateKey);
     const client = new JWT({
       email: creds.serviceAccountEmail,
       key,
