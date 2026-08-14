@@ -10,6 +10,7 @@ import { DIMENSION_LABELS, DimensionKey, FilterTag } from "@/lib/intelligence";
 import { DEMO_EXAMPLE_QUESTIONS } from "@/lib/ai-demo-questions";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 import EmptyState from "@/components/EmptyState";
+import AddToDashboardButton from "@/components/AddToDashboardButton";
 
 type DimensionValue = { value: string; label: string };
 type Dimensions = Record<DimensionKey, DimensionValue[]>;
@@ -429,6 +430,15 @@ function IntelligencePageInner() {
                 </div>
               )}
               <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{askAnswer}</div>
+              {askStats.length > 0 && lastAskedQuestion && (
+                <div style={{ marginTop: 12 }}>
+                  <AddToDashboardButton
+                    title={lastAskedQuestion}
+                    sourceQuestion={lastAskedQuestion}
+                    stats={askStats.map((s) => ({ label: s.label, value: s.value }))}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

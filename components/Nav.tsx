@@ -52,6 +52,7 @@ const links = [
     section: "Intelligence",
     items: [
       { href: "/decision-intelligence", label: "Decision Intelligence" },
+      { href: "/dashboards", label: "Dashboards" },
       { href: "/value-drivers", label: "Value Driver Tree" },
       { href: "/growth-bridge", label: "Growth Bridge" },
       { href: "/benchmarks", label: "Benchmark Intelligence" },
