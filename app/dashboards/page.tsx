@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import RelatedPages from "@/components/RelatedPages";
 import { DocInsightBox, DocFooterNote, formatTimestamp } from "@/components/DocLayout";
 
@@ -14,10 +15,35 @@ interface DashboardSummary {
 }
 
 export default function DashboardsPage() {
+  const router = useRouter();
   const [dashboards, setDashboards] = useState<DashboardSummary[] | null>(null);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [genPrompt, setGenPrompt] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState<string | null>(null);
+
+  async function generateDashboard(e: React.FormEvent) {
+    e.preventDefault();
+    if (!genPrompt.trim()) return;
+    setGenerating(true);
+    setGenError(null);
+    try {
+      const res = await fetch("/api/dashboards/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: genPrompt.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error);
+      router.push(`/dashboards/${json.dashboardId}`);
+    } catch (err) {
+      setGenError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   function load() {
     fetch("/api/dashboards")
@@ -72,7 +98,29 @@ export default function DashboardsPage() {
       </div>
 
       <div className="section">
-        <h2 className="section-title">Create a new dashboard</h2>
+        <h2 className="section-title">Describe the dashboard you want</h2>
+        <p className="section-subtitle">
+          Type what you want to see — the platform picks the matching real questions, computes each one for real
+          against BigQuery, and builds the whole dashboard in one step. No fabricated numbers: every block still
+          comes from the same real calculators as the Command Center, never invented.
+        </p>
+        <form onSubmit={generateDashboard} style={{ display: "flex", gap: 8, maxWidth: 640 }}>
+          <input
+            type="text"
+            value={genPrompt}
+            onChange={(e) => setGenPrompt(e.target.value)}
+            placeholder="e.g. Show me GMROI, sell-through, and our top influencer's ROI"
+            style={{ flex: 1 }}
+          />
+          <button type="submit" className="btn" disabled={generating}>
+            {generating ? "Building…" : "Generate"}
+          </button>
+        </form>
+        {genError && <p style={{ color: "var(--status-critical)", fontSize: 12, marginTop: 6 }}>{genError}</p>}
+      </div>
+
+      <div className="section">
+        <h2 className="section-title">…or create an empty one and add to it manually</h2>
         <form onSubmit={createDashboard} style={{ display: "flex", gap: 8, maxWidth: 480 }}>
           <input
             type="text"
