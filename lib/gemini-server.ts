@@ -24,6 +24,10 @@ import { GoogleGenAI } from "@google/genai";
 // in sync with QueryCategory in lib/ai-demo-mode.ts by hand.
 export type GeminiQueryCategory = "kpi_lookup" | "reorder" | "scenario" | "general_search";
 
+// Same cheap/high-quota model as CLASSIFY_MODEL -- this is the same shape
+// of task (pick from a small fixed set), not a grounded answer.
+const SELECT_MODEL = "gemini-2.5-flash-lite";
+
 // Cheapest/highest-quota free-tier model for the one-word routing decision
 // (1,000 requests/day as of the free-tier limits confirmed 2026-08-08).
 const CLASSIFY_MODEL = "gemini-2.5-flash-lite";
@@ -95,4 +99,30 @@ ${groundingContext}`,
   const text = (response.text ?? "").trim();
   if (!text) throw new Error("Gemini returned an empty response");
   return text;
+}
+
+// Free middle tier for the dashboard generator's question-selection step
+// (lib/dashboard-generator.ts), sitting between Claude and the keyword
+// fallback -- same "returns null on any failure, let the caller fall
+// through" contract as classifyWithGemini above. Only ever picks from the
+// exact list handed in; anything else is discarded by the caller, same
+// discipline as the Claude version of this same step.
+export async function selectQuestionsWithGemini(prompt: string, options: string[]): Promise<string[] | null> {
+  try {
+    const ai = client();
+    const response = await ai.models.generateContent({
+      model: SELECT_MODEL,
+      contents: `A user wants a dashboard described as: "${prompt}"\n\nFrom this exact list of real, computable questions, pick the ones relevant to their request (at least 1, at most 6):\n${options.map((q, i) => `${i + 1}. ${q}`).join("\n")}\n\nReply with ONLY a JSON array of the exact question strings from the list, nothing else.`,
+      config: { maxOutputTokens: 300 },
+    });
+    const raw = (response.text ?? "").trim();
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) return null;
+    const parsed = JSON.parse(match[0]);
+    const valid = Array.isArray(parsed) ? parsed.filter((q: unknown) => typeof q === "string" && options.includes(q)) : [];
+    return valid.length > 0 ? valid : null;
+  } catch (error) {
+    console.error("GEMINI DASHBOARD-SELECT ERROR (falling back):", error);
+    return null;
+  }
 }

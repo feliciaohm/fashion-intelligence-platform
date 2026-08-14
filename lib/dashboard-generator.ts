@@ -16,6 +16,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { DEMO_EXAMPLE_QUESTIONS } from "@/lib/ai-demo-questions";
 import { tryDemoAnswer, type DemoAnswer } from "@/lib/ai-demo-mode";
+import { isGeminiConfigured, selectQuestionsWithGemini } from "@/lib/gemini-server";
 
 const KEYWORDS: Record<string, string[]> = {
   "Which influencer gave the highest ROI?": ["influencer", "roi", "campaign"],
@@ -37,13 +38,6 @@ function keywordSelect(prompt: string): string[] {
   return matches.length > 0 ? matches : DEMO_EXAMPLE_QUESTIONS;
 }
 
-// Only Claude -> keyword-rules here, not the full 3-tier Claude -> Gemini ->
-// rules chain the Command Center uses -- GEMINI_API_KEY isn't configured in
-// this environment yet, so a Gemini middle tier would be dead code right
-// now. Worth adding for consistency once Gemini is actually set up; the
-// keyword fallback already covers the "no paid tier available" case
-// honestly in the meantime -- confirmed live just now, since the real
-// Claude key currently has no credit balance.
 async function selectQuestionsWithClaude(prompt: string): Promise<string[] | null> {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   try {
@@ -70,7 +64,15 @@ async function selectQuestionsWithClaude(prompt: string): Promise<string[] | nul
 export async function generateDashboardBlocks(
   prompt: string
 ): Promise<{ title: string; sourceQuestion: string; stats: { label: string; value: string }[] }[]> {
-  const questions = (await selectQuestionsWithClaude(prompt)) ?? keywordSelect(prompt);
+  // Real 3-tier chain, matching the Command Center's shape: paid Claude ->
+  // free Gemini -> free keyword rules. Never a dead end, and the two AI
+  // tiers can only ever pick from the fixed real-question list -- the
+  // keyword tier is the only one guaranteed to run for $0 forever.
+  let questions = await selectQuestionsWithClaude(prompt);
+  if (!questions && isGeminiConfigured()) {
+    questions = await selectQuestionsWithGemini(prompt, DEMO_EXAMPLE_QUESTIONS);
+  }
+  questions = questions ?? keywordSelect(prompt);
 
   const answers = await Promise.all(
     questions.map(async (q) => {
