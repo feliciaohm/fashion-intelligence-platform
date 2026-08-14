@@ -26,15 +26,20 @@ export type GeminiQueryCategory = "kpi_lookup" | "reorder" | "scenario" | "gener
 
 // Same cheap/high-quota model as CLASSIFY_MODEL -- this is the same shape
 // of task (pick from a small fixed set), not a grounded answer.
-const SELECT_MODEL = "gemini-2.5-flash-lite";
+const SELECT_MODEL = "gemini-flash-lite-latest";
 
-// Cheapest/highest-quota free-tier model for the one-word routing decision
-// (1,000 requests/day as of the free-tier limits confirmed 2026-08-08).
-const CLASSIFY_MODEL = "gemini-2.5-flash-lite";
-// A step up for the fuller grounded answer -- still free tier (250
-// requests/day), which is what actually matters here since this is a
-// portfolio demo, not production traffic.
-const ANSWER_MODEL = "gemini-2.5-flash";
+// Google deprecated gemini-2.5-flash-lite and gemini-2.5-flash for new API
+// keys sometime after 2026-08-08 -- confirmed live against a brand-new key
+// created tonight: both returned a real 404 "no longer available to new
+// users". Re-tested every current model name directly against this real
+// key before picking a replacement; gemini-2.0-flash and gemini-3-pro-
+// preview are also dead (404), gemini-flash-latest and gemini-pro-latest
+// are real but currently overloaded/quota-limited on the free tier. These
+// two actually returned a real response just now:
+const CLASSIFY_MODEL = "gemini-flash-lite-latest";
+// A step up for the fuller grounded answer -- Google's newer flagship-ish
+// flash model, still free tier.
+const ANSWER_MODEL = "gemini-3-flash-preview";
 
 const VALID_CATEGORIES: GeminiQueryCategory[] = ["kpi_lookup", "reorder", "scenario", "general_search"];
 
