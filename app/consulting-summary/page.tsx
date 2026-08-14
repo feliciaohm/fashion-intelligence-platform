@@ -35,8 +35,8 @@ export default async function ConsultingSummaryPage() {
     },
   ];
 
-  const insightBoxText: string = data.recommendedActions[0]
-    ? `${data.recommendedActions[0].action} ${data.recommendedActions[0].expectedImpact}`
+  const insightBoxText: string = data.priorityFindings[0]
+    ? `${data.priorityFindings[0].finding} ${data.priorityFindings[0].magnitude}`
     : headline;
 
   return (
@@ -78,15 +78,15 @@ export default async function ConsultingSummaryPage() {
       </div>
 
       <div className="section panel">
-        <h2 className="section-title" style={{ marginBottom: 10 }}>Recommended Actions</h2>
+        <h2 className="section-title" style={{ marginBottom: 10 }}>Priority Findings</h2>
         <ol style={{ display: "flex", flexDirection: "column", gap: 14, paddingLeft: 20 }}>
-          {data.recommendedActions.map((a: any) => (
-            <li key={a.priority}>
+          {data.priorityFindings.map((f: any) => (
+            <li key={f.priority}>
               <div style={{ fontWeight: 600, fontSize: 14, color: "var(--color-ink)" }}>
-                Priority {a.priority}: {a.action}
+                Priority {f.priority}: {f.finding}
               </div>
               <div className="text-muted" style={{ fontSize: 13, marginTop: 2, lineHeight: 1.5 }}>
-                Expected impact: {a.expectedImpact}
+                {f.magnitude}
               </div>
             </li>
           ))}

@@ -20,10 +20,10 @@ function buildSummaryText(data: any): string {
   data.strategicImplications.forEach((s: string, i: number) => lines.push(`${i + 1}. ${s}`));
   lines.push("");
 
-  lines.push("RECOMMENDED ACTIONS");
-  data.recommendedActions.forEach((a: any) => {
-    lines.push(`${a.priority}. ${a.action}`);
-    lines.push(`   Expected impact: ${a.expectedImpact}`);
+  lines.push("PRIORITY FINDINGS");
+  data.priorityFindings.forEach((f: any) => {
+    lines.push(`${f.priority}. ${f.finding}`);
+    lines.push(`   ${f.magnitude}`);
   });
   lines.push("");
 

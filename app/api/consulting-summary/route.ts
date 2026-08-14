@@ -81,32 +81,34 @@ export async function GET() {
         : `No benchmark is currently outperforming its industry average — closing gaps should take priority over defending strengths this period.`
     );
 
-    // --- Recommended Actions: 3 prioritized, expected impact framed against the real gap being closed ---
-    const recommendedActions: { priority: number; action: string; expectedImpact: string }[] = [];
+    // --- Priority Findings: 3 real findings ranked by severity/gap size.
+    // Deliberately descriptive, not prescriptive -- states what the data
+    // shows (the finding + its real magnitude), never a recommended action
+    // or a predicted outcome the platform can't actually verify. Same
+    // "never fabricate, never recommend" discipline already applied to AI
+    // Search's answers.
+    const priorityFindings: { priority: number; finding: string; magnitude: string }[] = [];
     if (topRuleFinding) {
-      recommendedActions.push({
+      priorityFindings.push({
         priority: 1,
-        action: `Address: ${topRuleFinding.title}.`,
-        expectedImpact: `Directly closes the platform's single most severe rule-based finding this month (severity score ${topRuleFinding.severity.toFixed(1)}).`,
+        finding: topRuleFinding.title,
+        magnitude: `Severity score ${topRuleFinding.severity.toFixed(1)} — the platform's highest-ranked rule-based finding this month.`,
       });
     }
     if (worstBenchmark) {
-      recommendedActions.push({
-        priority: recommendedActions.length + 1,
-        action: `Build a plan to close the ${worstBenchmark.b.label} gap toward the ${formatBenchmarkValue(worstBenchmark.b.industryAverage, worstBenchmark.b.unit)} industry average.`,
-        expectedImpact: `Moves ${worstBenchmark.b.label} from ${formatBenchmarkValue(worstBenchmark.b.platformValue!, worstBenchmark.b.unit)} toward parity with luxury-sector peers — the platform's largest single benchmark gap.`,
+      priorityFindings.push({
+        priority: priorityFindings.length + 1,
+        finding: `${worstBenchmark.b.label} is ${formatBenchmarkValue(worstBenchmark.b.platformValue!, worstBenchmark.b.unit)}, vs. an industry average of ${formatBenchmarkValue(worstBenchmark.b.industryAverage, worstBenchmark.b.unit)}.`,
+        magnitude: `${Math.abs(worstBenchmark.gapPct).toFixed(1)}% gap to the industry average (source: ${worstBenchmark.b.source}) — the platform's largest benchmark gap this period.`,
       });
     }
-    recommendedActions.push({
-      priority: recommendedActions.length + 1,
-      action:
+    priorityFindings.push({
+      priority: priorityFindings.length + 1,
+      finding: `${metrics.overallChurnRatePct.toFixed(1)}% of customers have been inactive 90+ days.`,
+      magnitude:
         metrics.overallChurnRatePct > 30
-          ? "Launch a targeted re-engagement campaign for customers approaching the 90-day inactivity threshold."
-          : "Maintain current retention programs while investing incremental budget in acquisition.",
-      expectedImpact:
-        metrics.overallChurnRatePct > 30
-          ? `Brings the ${metrics.overallChurnRatePct.toFixed(1)}% churn rate down toward the platform's own 30% alert threshold, protecting recurring revenue.`
-          : "Preserves the current healthy retention base while acquisition spend scales.",
+          ? `${(metrics.overallChurnRatePct - 30).toFixed(1)} points above the platform's own 30% alert threshold.`
+          : `${(30 - metrics.overallChurnRatePct).toFixed(1)} points of headroom below the platform's own 30% alert threshold.`,
     });
 
     return NextResponse.json({
@@ -115,7 +117,7 @@ export async function GET() {
       executiveSummary,
       keyFindings,
       strategicImplications,
-      recommendedActions,
+      priorityFindings,
       revenueActual: metrics.totalActual,
       revenueVariancePct,
       overallChurnRatePct: metrics.overallChurnRatePct,
