@@ -38,11 +38,23 @@ function parseNumeric(value: string): number | null {
   return isNaN(n) ? null : n;
 }
 
+// The unit "shape" of a value -- everything that ISN'T the number itself
+// (a leading currency symbol, a trailing "%" or "x", plain unitless). Two
+// stats only belong on the same axis if this shape matches -- confirmed
+// live why this matters: a real GMROI answer had "1.83x" (a ratio) next to
+// "0" and "1" (plain category counts) parse to numbers fine on their own,
+// but charting a ratio against counts on one shared axis is comparing
+// unrelated things, not a real chartable series.
+function unitShape(value: string): string {
+  return value.replace(/[\d.,\s-]/g, "");
+}
+
 function BlockCard({ block }: { block: Block }) {
   const chartData = block.stats
-    .map((s) => ({ label: s.label, numeric: parseNumeric(s.value), display: s.value }))
-    .filter((s): s is { label: string; numeric: number; display: string } => s.numeric !== null);
-  const canChart = chartData.length >= 2 && chartData.length === block.stats.length;
+    .map((s) => ({ label: s.label, numeric: parseNumeric(s.value), display: s.value, shape: unitShape(s.value) }))
+    .filter((s): s is { label: string; numeric: number; display: string; shape: string } => s.numeric !== null);
+  const allSameShape = chartData.length > 0 && chartData.every((s) => s.shape === chartData[0].shape);
+  const canChart = chartData.length >= 2 && chartData.length === block.stats.length && allSameShape;
 
   return (
     <div className="panel">
