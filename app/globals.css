@@ -776,6 +776,172 @@ a {
   }
 }
 
+/* ---------- Dashboard Studio: chat rail + live canvas (Sana-inspired) ----------
+   The "describe it, watch it get built" generator -- a dark chat rail on
+   the left (matches the black stat cards elsewhere on this page) and a
+   live canvas on the right showing the real blocks as they're generated.
+   Each prompt still creates its own real, permanently saved dashboard
+   (no change to /api/dashboards/generate) -- this is a better way to
+   *use* that same real endpoint, not a different backend contract. The
+   chat history is a session-only launcher for switching between the
+   dashboards you've generated in this visit, not a persisted chat log.
+*/
+
+.dash-studio {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  min-height: 480px;
+  margin: 24px 0 8px;
+}
+
+.dash-studio-chat {
+  background: var(--dash-card-dark);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.dash-studio-chat-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dash-ink-on-dark-muted);
+  margin-bottom: 14px;
+}
+
+.dash-studio-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.dash-studio-empty-chat {
+  font-size: 12px;
+  color: var(--dash-ink-on-dark-muted);
+  line-height: 1.6;
+  padding: 4px 2px;
+}
+
+.dash-studio-message {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.dash-studio-message:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dash-studio-message.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(242, 237, 227, 0.25);
+}
+
+.dash-studio-message-prompt {
+  font-size: 12.5px;
+  color: var(--dash-ink-on-dark);
+  line-height: 1.4;
+}
+
+.dash-studio-message-status {
+  font-size: 10.5px;
+  color: var(--dash-ink-on-dark-muted);
+  margin-top: 4px;
+}
+
+.dash-studio-message-status.error {
+  color: var(--dash-critical-on-dark);
+}
+
+.dash-studio-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dash-studio-chat input[type="text"] {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  color: var(--dash-ink-on-dark);
+  padding: 10px 12px;
+}
+
+.dash-studio-chat input[type="text"]::placeholder {
+  color: var(--dash-ink-on-dark-muted);
+}
+
+.dash-studio-send {
+  background: var(--dash-ink-on-dark);
+  color: var(--dash-card-dark);
+  border: none;
+  border-radius: 8px;
+  padding: 0 18px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dash-studio-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.dash-studio-canvas {
+  background: var(--dash-card-light);
+  border: 1px solid var(--dash-card-light-border);
+  border-radius: 14px;
+  padding: 22px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dash-studio-canvas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.dash-studio-canvas-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.dash-studio-empty-canvas {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 40px 20px;
+}
+
+@media (max-width: 860px) {
+  .dash-studio {
+    grid-template-columns: 1fr;
+  }
+  .dash-studio-chat {
+    min-height: 320px;
+  }
+}
+
 /* ---------- Tables ---------- */
 
 .data-table-wrap {
@@ -1106,6 +1272,127 @@ input[type="password"]:focus {
   margin: 22px auto 30px;
 }
 
+/* ---------- Preview band: a floating "browser window" peek at the real
+   in-app look, sitting right under the hero (Sana's photo-band position,
+   translated into something honest -- a real preview of the product,
+   not a stock photo). ---------- */
+
+.marketing-preview-band {
+  background: #ece7dd;
+  padding: 56px 24px 68px;
+  display: flex;
+  justify-content: center;
+}
+
+.marketing-preview-window {
+  width: 100%;
+  max-width: 760px;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 34px 70px -24px rgba(23, 20, 15, 0.35);
+}
+
+.marketing-preview-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.marketing-preview-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+}
+
+.marketing-preview-label {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--color-ink-muted);
+}
+
+.marketing-preview-body {
+  background: #ece7dd;
+  padding: 22px 24px 24px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+}
+
+.marketing-preview-card {
+  background: #17140f;
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #f2ede3;
+}
+
+.marketing-preview-card-label {
+  font-size: 10px;
+  color: #9c968a;
+  margin-bottom: 4px;
+}
+
+.marketing-preview-card-value {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.marketing-preview-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.marketing-preview-stack .marketing-preview-card {
+  flex: 1;
+  padding: 10px 14px;
+}
+
+.marketing-preview-stack .marketing-preview-card-value {
+  font-size: 14px;
+}
+
+/* ---------- Capabilities: serif headline + pill eyebrow (the "Design
+   support with clear direction" reference), icon-badged cards, one card
+   highlighted in black to draw the eye -- same real 4 features as before,
+   just given the visual weight the reference gives its standout card. ---------- */
+
+.marketing-section-header {
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 68px 24px 40px;
+}
+
+.marketing-eyebrow-pill {
+  display: inline-flex;
+  padding: 6px 15px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: var(--color-ink-secondary);
+  margin-bottom: 22px;
+}
+
+.marketing-section-title {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(26px, 4vw, 34px);
+  font-weight: 600;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+
+.marketing-section-sub {
+  font-size: 14px;
+  color: var(--color-ink-secondary);
+  line-height: 1.6;
+}
+
 .marketing-capabilities {
   max-width: 1000px;
   margin: 0 auto;
@@ -1119,7 +1406,19 @@ input[type="password"]:focus {
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  padding: 20px;
+  padding: 22px 20px;
+}
+
+.marketing-capability-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--color-bg-sunken);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink);
+  margin-bottom: 18px;
 }
 
 .marketing-capability-title {
@@ -1133,6 +1432,31 @@ input[type="password"]:focus {
   font-size: 12px;
   line-height: 1.55;
   color: var(--color-ink-secondary);
+}
+
+.marketing-capability-card--highlight {
+  background: #17140f;
+  border-color: #17140f;
+  background-image: radial-gradient(circle at 82% 18%, rgba(172, 123, 46, 0.4), transparent 55%);
+}
+
+.marketing-capability-card--highlight .marketing-capability-icon {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f2ede3;
+}
+
+.marketing-capability-card--highlight .marketing-capability-title {
+  color: #f2ede3;
+}
+
+.marketing-capability-card--highlight .marketing-capability-desc {
+  color: #b7b0a2;
+}
+
+@media (max-width: 720px) {
+  .marketing-preview-body {
+    grid-template-columns: 1fr;
+  }
 }
 
 .marketing-trust {

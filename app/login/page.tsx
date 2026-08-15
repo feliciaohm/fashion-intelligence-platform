@@ -15,6 +15,57 @@ function GoogleIcon() {
   );
 }
 
+// Small line icons for the capability cards -- hand-drawn to match the
+// minimal, single-color icon-badge style from the design reference,
+// consistent with the rest of the codebase's inline-SVG icons (no icon
+// library dependency).
+function IconSvg({ children }: { children: React.ReactNode }) {
+  return (
+    <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {children}
+    </svg>
+  );
+}
+
+function RouteIcon() {
+  return (
+    <IconSvg>
+      <circle cx="4.5" cy="15.5" r="2" />
+      <circle cx="15.5" cy="4.5" r="2" />
+      <path d="M6.2 14.3C9.5 13 8.7 6.8 13.8 5.7" strokeDasharray="1.5 2.6" />
+    </IconSvg>
+  );
+}
+
+function GiftIcon() {
+  return (
+    <IconSvg>
+      <rect x="3" y="8.5" width="14" height="8.5" rx="1.2" />
+      <path d="M3 8.5h14M10 8.5v8.5" />
+      <path d="M10 8.5c0-2.2-1.7-4-3.4-4C5.1 4.5 5.1 6.5 6.6 7.4c1 .6 2.2.9 3.4 1.1zM10 8.5c0-2.2 1.7-4 3.4-4 1.5 0 1.5 2-.1 2.9-1 .6-2.2.9-3.3 1.1z" />
+    </IconSvg>
+  );
+}
+
+function SparkleIcon() {
+  return (
+    <IconSvg>
+      <path d="M10 3l1.3 4.4L16 8.7l-4.7 1.3L10 15l-1.3-4.7L4 8.7l4.7-1.3L10 3z" />
+      <path d="M16 3v3M14.5 4.5h3" />
+    </IconSvg>
+  );
+}
+
+function LinkIcon() {
+  return (
+    <IconSvg>
+      <path d="M7.3 12.7l5.4-5.4" />
+      <path d="M6 13.9a3 3 0 010-4.2l1.7-1.7a3 3 0 014.2 0" />
+      <path d="M14 6.1a3 3 0 010 4.2l-1.7 1.7a3 3 0 01-4.2 0" />
+    </IconSvg>
+  );
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -110,8 +161,46 @@ function LoginForm() {
         </a>
       </section>
 
+      <div className="marketing-preview-band">
+        <div className="marketing-preview-window">
+          <div className="marketing-preview-titlebar">
+            <span className="marketing-preview-dot" />
+            <span className="marketing-preview-dot" />
+            <span className="marketing-preview-dot" />
+            <span className="marketing-preview-label">Executive Summary — real BigQuery data</span>
+          </div>
+          <div className="marketing-preview-body">
+            <div className="marketing-preview-card">
+              <div className="marketing-preview-card-label">Revenue This Month</div>
+              <div className="marketing-preview-card-value">€612,400</div>
+            </div>
+            <div className="marketing-preview-stack">
+              <div className="marketing-preview-card">
+                <div className="marketing-preview-card-label">Churn Rate</div>
+                <div className="marketing-preview-card-value">24.6%</div>
+              </div>
+              <div className="marketing-preview-card">
+                <div className="marketing-preview-card-label">Sell-Through Gap</div>
+                <div className="marketing-preview-card-value">6.3%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="marketing-section-header">
+        <span className="marketing-eyebrow-pill">Capabilities</span>
+        <h2 className="marketing-section-title">Intelligence, not more dashboards to babysit</h2>
+        <p className="marketing-section-sub">
+          Four real capabilities, built from the data you already have — nothing here is a mockup.
+        </p>
+      </div>
+
       <section id="capabilities" className="marketing-capabilities">
         <div className="marketing-capability-card">
+          <div className="marketing-capability-icon">
+            <RouteIcon />
+          </div>
           <div className="marketing-capability-title">Visitor Journey</div>
           <div className="marketing-capability-desc">
             See exactly which influencer post, gift, or campaign drove a real site visit —
@@ -119,13 +208,19 @@ function LoginForm() {
           </div>
         </div>
         <div className="marketing-capability-card">
+          <div className="marketing-capability-icon">
+            <GiftIcon />
+          </div>
           <div className="marketing-capability-title">Gifting ROI</div>
           <div className="marketing-capability-desc">
             Cross-match your gifting log against posting activity and see real revenue and
             ROI per influencer, updated live from Google Sheets.
           </div>
         </div>
-        <div className="marketing-capability-card">
+        <div className="marketing-capability-card marketing-capability-card--highlight">
+          <div className="marketing-capability-icon">
+            <SparkleIcon />
+          </div>
           <div className="marketing-capability-title">AI-Generated Dashboards</div>
           <div className="marketing-capability-desc">
             Describe the dashboard you want in plain language and get one built in seconds —
@@ -133,6 +228,9 @@ function LoginForm() {
           </div>
         </div>
         <div className="marketing-capability-card">
+          <div className="marketing-capability-icon">
+            <LinkIcon />
+          </div>
           <div className="marketing-capability-title">Real Integrations</div>
           <div className="marketing-capability-desc">
             Connects to Shopify, Klaviyo, GA4, and Google Sheets — one platform instead of
