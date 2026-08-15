@@ -17,14 +17,16 @@
   --status-good: #2e7d32;
   --status-critical: #b3261e;
 
-  /* Sidebar: deliberately its own dark palette, not a variant of the
-     light-theme tokens above -- the nav is the one surface in the app
-     that's always dark, everything else stays light. */
-  --nav-bg: #131110;
-  --nav-ink: #f4f0e8;
-  --nav-ink-muted: #948d80;
-  --nav-border: rgba(244, 240, 232, 0.09);
-  --nav-hover-bg: rgba(244, 240, 232, 0.05);
+  /* Sidebar: white, like every reference image actually shows (Venture,
+     Kravio, the campaign builder) -- none of them have a dark sidebar.
+     Kept as its own token set (not just reusing --color-* directly) so
+     the one filled "active" accent block can stay a deliberate near-black
+     without redefining what "ink" means everywhere else. */
+  --nav-bg: #ffffff;
+  --nav-ink: #17140f;
+  --nav-ink-muted: #918b7d;
+  --nav-border: #e6e3dc;
+  --nav-hover-bg: #f4f3f0;
 
   --nav-width: 240px;
 }
@@ -82,7 +84,7 @@ a {
   width: var(--nav-width);
   flex-shrink: 0;
   background: var(--nav-bg);
-  border-right: none;
+  border-right: 1px solid var(--nav-border);
   padding: 26px 22px;
   display: flex;
   flex-direction: column;
@@ -131,7 +133,7 @@ a {
 }
 
 .role-switcher-trigger:hover {
-  border-color: rgba(244, 240, 232, 0.24);
+  border-color: var(--color-border-strong);
 }
 
 .role-switcher-eyebrow {
@@ -165,9 +167,9 @@ a {
   left: 0;
   right: 0;
   z-index: 30;
-  background: #1c1a17;
-  border: 1px solid var(--nav-border);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  background: var(--nav-bg);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: 0 8px 24px rgba(23, 20, 15, 0.1);
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -222,7 +224,7 @@ a {
 }
 
 .app-nav-command:hover {
-  border-color: rgba(244, 240, 232, 0.3);
+  border-color: var(--color-accent);
 }
 
 .app-nav-command span {
