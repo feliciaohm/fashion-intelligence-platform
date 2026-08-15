@@ -684,9 +684,14 @@ a {
 */
 
 .dash-beige {
-  --dash-bg: #ece7dd;
-  --dash-card-light: #f6f3ec;
-  --dash-card-light-border: #e2dbc9;
+  /* White canvas, black cards -- kept the token names (a rename would
+     touch every page using this theme for a purely cosmetic reason) but
+     the values themselves are the real fix: no beige/cream warmth left
+     anywhere, just white surfaces, neutral-gray borders, black cards,
+     and black text throughout. */
+  --dash-bg: #ffffff;
+  --dash-card-light: #ffffff;
+  --dash-card-light-border: #e3e3e1;
   --dash-card-dark: #17140f;
   --dash-ink-on-dark: #f2ede3;
   --dash-ink-on-dark-muted: #9c968a;
