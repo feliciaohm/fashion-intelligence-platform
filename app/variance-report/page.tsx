@@ -1,4 +1,5 @@
 import ExportCsvButton from "@/components/ExportCsvButton";
+import { selfFetch } from "@/lib/self-fetch";
 import PrintButton from "@/components/PrintButton";
 import BoardReportGenerator from "@/components/BoardReportGenerator";
 import CopyInsightButton from "@/components/CopyInsightButton";
@@ -7,7 +8,7 @@ import { buildInsightText } from "@/lib/insight-text";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 
 async function getData() {
-  const res = await fetch("http://localhost:3000/api/variance-report", { cache: "no-store" });
+  const res = await selfFetch("/api/variance-report", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch variance report");
   return res.json();
 }

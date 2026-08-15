@@ -1,4 +1,5 @@
 import ExportCsvButton from "@/components/ExportCsvButton";
+import { selfFetch } from "@/lib/self-fetch";
 import PrintButton from "@/components/PrintButton";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
@@ -6,7 +7,7 @@ import { formatDeptName } from "@/lib/narrative";
 import DataQualityIndicator from "@/components/DataQualityIndicator";
 
 async function getData() {
-  const res = await fetch("http://localhost:3000/api/consolidated-pnl", { cache: "no-store" });
+  const res = await selfFetch("/api/consolidated-pnl", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch consolidated P&L");
   return res.json();
 }

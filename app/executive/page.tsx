@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { selfFetch } from "@/lib/self-fetch";
 import PrintButton from "@/components/PrintButton";
 import WeeklyDigest from "@/components/WeeklyDigest";
 import CopyInsightButton from "@/components/CopyInsightButton";
@@ -14,13 +15,13 @@ function toDirection(status: MetricStatus): "good" | "critical" | "neutral" {
 }
 
 async function getData() {
-  const res = await fetch("http://localhost:3000/api/executive-summary", { cache: "no-store" });
+  const res = await selfFetch("/api/executive-summary", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch executive summary");
   return res.json();
 }
 
 async function getQuickMetrics() {
-  const res = await fetch("http://localhost:3000/api/quick-metrics", { cache: "no-store" });
+  const res = await selfFetch("/api/quick-metrics", { cache: "no-store" });
   if (!res.ok) return null;
   return res.json();
 }

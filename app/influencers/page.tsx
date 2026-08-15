@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { selfFetch } from "@/lib/self-fetch";
 import ExportCsvButton from "@/components/ExportCsvButton";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
@@ -6,9 +7,9 @@ import EmptyState from "@/components/EmptyState";
 
 async function getData(country?: string) {
   const url = country
-    ? `http://localhost:3000/api/influencer-summary?country=${encodeURIComponent(country)}`
-    : "http://localhost:3000/api/influencer-summary";
-  const res = await fetch(url, { cache: "no-store" });
+    ? `/api/influencer-summary?country=${encodeURIComponent(country)}`
+    : "/api/influencer-summary";
+  const res = await selfFetch(url, { cache: "no-store" });
 
   if (!res.ok) {
     throw new Error("Failed to fetch influencer summary");
@@ -18,7 +19,7 @@ async function getData(country?: string) {
 }
 
 async function getCountries() {
-  const res = await fetch("http://localhost:3000/api/countries", { cache: "no-store" });
+  const res = await selfFetch("/api/countries", { cache: "no-store" });
   return res.json();
 }
 

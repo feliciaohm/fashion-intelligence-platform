@@ -1,4 +1,5 @@
 import PrintButton from "@/components/PrintButton";
+import { selfFetch } from "@/lib/self-fetch";
 import CopyInsightButton from "@/components/CopyInsightButton";
 import RelatedPages from "@/components/RelatedPages";
 import { buildInsightText } from "@/lib/insight-text";
@@ -12,7 +13,7 @@ function gapPct(b: BenchmarkResult): number {
 }
 
 async function getData(): Promise<{ benchmarks: BenchmarkResult[] }> {
-  const res = await fetch("http://localhost:3000/api/benchmarks", { cache: "no-store" });
+  const res = await selfFetch("/api/benchmarks", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch benchmarks");
   return res.json();
 }

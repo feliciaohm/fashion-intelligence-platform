@@ -1,9 +1,10 @@
 import ExportCsvButton from "@/components/ExportCsvButton";
+import { selfFetch } from "@/lib/self-fetch";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 
 async function getData() {
-  const res = await fetch("http://localhost:3000/api/returns", {
+  const res = await selfFetch("/api/returns", {
     cache: "no-store",
   });
   if (!res.ok) throw new Error("Failed to fetch returns");

@@ -1,4 +1,5 @@
 import ExportCsvButton from "@/components/ExportCsvButton";
+import { selfFetch } from "@/lib/self-fetch";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 
@@ -8,7 +9,7 @@ function pctDelta(oldVal: number, newVal: number): number | null {
 }
 
 async function getData() {
-  const res = await fetch("http://localhost:3000/api/stores", { cache: "no-store" });
+  const res = await selfFetch("/api/stores", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch store performance");
   return res.json();
 }

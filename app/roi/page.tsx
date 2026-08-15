@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { selfFetch } from "@/lib/self-fetch";
 import ExportCsvButton from "@/components/ExportCsvButton";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 import DataQualityIndicator from "@/components/DataQualityIndicator";
 
 async function getData() {
-  const res = await fetch("http://localhost:3000/api/influencers", {
+  const res = await selfFetch("/api/influencers", {
     cache: "no-store",
   });
 

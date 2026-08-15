@@ -1,10 +1,11 @@
 import PrintButton from "@/components/PrintButton";
+import { selfFetch } from "@/lib/self-fetch";
 import ConsultingSummaryCopyButton from "@/components/ConsultingSummaryCopyButton";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 
 async function getData() {
-  const res = await fetch("http://localhost:3000/api/consulting-summary", { cache: "no-store" });
+  const res = await selfFetch("/api/consulting-summary", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch consulting summary");
   return res.json();
 }

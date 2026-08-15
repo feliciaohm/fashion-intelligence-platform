@@ -1,4 +1,5 @@
 import KPICard from "@/components/KPICard";
+import { selfFetch } from "@/lib/self-fetch";
 import ExportCsvButton from "@/components/ExportCsvButton";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
@@ -28,7 +29,7 @@ export default async function InfluencerDetail({
   const { slug } = await params;
   const name = slug.replace(/-/g, " ");
 
-  const res = await fetch(`http://localhost:3000/api/influencer/${slug}`, {
+  const res = await selfFetch(`/api/influencer/${slug}`, {
     cache: "no-store",
   });
   const posts = await res.json();

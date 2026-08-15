@@ -1,11 +1,12 @@
 import { mockPNL } from "../api/finance/mock";
+import { selfFetch } from "@/lib/self-fetch";
 import { simulateMarketingSpend } from "../api/scenario/mock";
 import ExportCsvButton from "@/components/ExportCsvButton";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 
 async function getFinancePnl() {
-  const res = await fetch("http://localhost:3000/api/finance-pnl", {
+  const res = await selfFetch("/api/finance-pnl", {
     cache: "no-store",
   });
   return res.json();

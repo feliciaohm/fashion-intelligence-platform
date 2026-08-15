@@ -1,4 +1,5 @@
 import RelatedPages from "@/components/RelatedPages";
+import { selfFetch } from "@/lib/self-fetch";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 import EmptyState from "@/components/EmptyState";
 
@@ -9,7 +10,7 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
 
-  const res = await fetch(`http://localhost:3000/api/products/${slug}`, {
+  const res = await selfFetch(`/api/products/${slug}`, {
     cache: "no-store",
   });
   const product = await res.json();

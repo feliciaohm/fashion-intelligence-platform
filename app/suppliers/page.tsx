@@ -1,10 +1,11 @@
 import ExportCsvButton from "@/components/ExportCsvButton";
+import { selfFetch } from "@/lib/self-fetch";
 import RelatedPages from "@/components/RelatedPages";
 import EmptyState from "@/components/EmptyState";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 
 async function getData() {
-  const res = await fetch("http://localhost:3000/api/suppliers", { cache: "no-store" });
+  const res = await selfFetch("/api/suppliers", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch suppliers");
   return res.json();
 }

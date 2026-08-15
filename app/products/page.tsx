@@ -1,13 +1,14 @@
 import ProductsTable from "../../components/ProductsTable";
+import { selfFetch } from "@/lib/self-fetch";
 import RelatedPages from "@/components/RelatedPages";
 import { KpiStrip, DocInsightBox, DocFooterNote, formatTimestamp, type KpiItem } from "@/components/DocLayout";
 import DataQualityIndicator from "@/components/DataQualityIndicator";
 
 async function getData(country?: string) {
   const url = country
-    ? `http://localhost:3000/api/products?country=${encodeURIComponent(country)}`
-    : "http://localhost:3000/api/products";
-  const res = await fetch(url, { cache: "no-store" });
+    ? `/api/products?country=${encodeURIComponent(country)}`
+    : "/api/products";
+  const res = await selfFetch(url, { cache: "no-store" });
 
   if (!res.ok) {
     throw new Error("Failed to fetch products");
@@ -17,7 +18,7 @@ async function getData(country?: string) {
 }
 
 async function getCountries() {
-  const res = await fetch("http://localhost:3000/api/countries", { cache: "no-store" });
+  const res = await selfFetch("/api/countries", { cache: "no-store" });
   return res.json();
 }
 
