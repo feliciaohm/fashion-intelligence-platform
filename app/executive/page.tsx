@@ -51,7 +51,7 @@ export default async function ExecutiveSummaryPage() {
   }));
 
   return (
-    <div>
+    <div className="dash-beige">
       <div className="page-eyebrow">Overview · Executive Summary</div>
       <div className="page-meta no-print">
         <span>Executive Summary — {data.monthLabel}</span>

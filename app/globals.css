@@ -675,6 +675,107 @@ a {
   padding: 24px;
 }
 
+/* ---------- Beige/black-card in-app theme (pilot) ----------
+   Scoped entirely under .dash-beige so it only affects pages that opt in
+   (wrap their root div in it) -- every other page keeps the existing
+   white "document" theme untouched. Reuses the same real data and shared
+   components (KpiStrip, DocInsightBox, panels, stat-grid) as every other
+   page; this only overrides how they look, never what they render.
+*/
+
+.dash-beige {
+  --dash-bg: #ece7dd;
+  --dash-card-light: #f6f3ec;
+  --dash-card-light-border: #e2dbc9;
+  --dash-card-dark: #17140f;
+  --dash-ink-on-dark: #f2ede3;
+  --dash-ink-on-dark-muted: #9c968a;
+  --dash-good-on-dark: #8fe0b0;
+  --dash-critical-on-dark: #ff9d8a;
+
+  background: var(--dash-bg);
+  border-radius: 20px;
+  padding: 36px 40px 48px;
+  margin: -8px -8px 0;
+}
+
+.dash-beige .doc-header-rule {
+  border-top-color: var(--dash-card-light-border);
+}
+
+.dash-beige .panel {
+  background: var(--dash-card-light);
+  border-color: var(--dash-card-light-border);
+  border-radius: 14px;
+}
+
+.dash-beige .kpi-strip {
+  background: var(--dash-card-light);
+  border: 1px solid var(--dash-card-light-border);
+  border-radius: 14px;
+  padding: 22px 6px;
+}
+
+.dash-beige .kpi-item {
+  border-right-color: var(--dash-card-light-border);
+}
+
+.dash-beige .stat-grid {
+  border: none;
+  background: transparent;
+  gap: 14px;
+}
+
+.dash-beige .stat-card {
+  background: var(--dash-card-dark);
+  border: none;
+  border-radius: 14px;
+  padding: 20px 22px;
+}
+
+.dash-beige .stat-card .stat-label {
+  color: var(--dash-ink-on-dark-muted);
+}
+
+.dash-beige .stat-card .stat-value {
+  color: var(--dash-ink-on-dark);
+}
+
+.dash-beige .stat-card .stat-value.good {
+  color: var(--dash-good-on-dark);
+}
+
+.dash-beige .stat-card .stat-value.critical {
+  color: var(--dash-critical-on-dark);
+}
+
+.dash-beige .doc-insight-box {
+  background: var(--dash-card-light);
+  border-radius: 0 14px 14px 0;
+  padding: 20px 24px;
+  margin: 40px 0;
+}
+
+.dash-beige .related-pages-grid {
+  background: var(--dash-card-light-border);
+  border-color: var(--dash-card-light-border);
+}
+
+.dash-beige .related-page-card {
+  background: var(--dash-card-light);
+}
+
+.dash-beige .related-page-card:hover {
+  background: #efe9da;
+}
+
+@media (max-width: 720px) {
+  .dash-beige {
+    padding: 24px 20px 32px;
+    border-radius: 14px;
+  }
+}
+
 /* ---------- Tables ---------- */
 
 .data-table-wrap {
