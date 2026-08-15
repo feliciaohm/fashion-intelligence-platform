@@ -1974,7 +1974,8 @@ input[type="password"]:focus {
   color: var(--color-ink);
 }
 
-button.btn {
+button.btn,
+a.btn {
   font-family: var(--font-inter), -apple-system, "Segoe UI", sans-serif;
   font-size: 11px;
   font-weight: 600;
@@ -1989,7 +1990,8 @@ button.btn {
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-button.btn:hover {
+button.btn:hover,
+a.btn:hover {
   background: transparent;
   color: var(--color-accent);
 }

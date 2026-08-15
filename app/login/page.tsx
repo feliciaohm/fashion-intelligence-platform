@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -78,6 +79,18 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  // This page is public (proxy.ts no longer redirects signed-in visitors
+  // away from it -- it's the marketing/overview page now, not just a
+  // sign-in form), so a signed-in visitor can land here too. Showing them
+  // a Google/email sign-in form would be confusing; show who they're
+  // signed in as instead, with a way back into the app.
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setCurrentUserEmail(data.user?.email ?? null));
+  }, []);
 
   async function signInWithGoogle() {
     setError(null);
@@ -285,6 +298,15 @@ function LoginForm() {
       <section id="signin" className="marketing-signin">
         <div className="marketing-signin-eyebrow">Already have access?</div>
 
+      {currentUserEmail ? (
+        <div className="login-card">
+          <h1 className="login-title">You&apos;re signed in</h1>
+          <p className="login-subtitle">Signed in as {currentUserEmail}.</p>
+          <Link href="/" className="btn" style={{ width: "100%", textAlign: "center", display: "block" }}>
+            Go to Dashboard →
+          </Link>
+        </div>
+      ) : (
       <div className="login-card">
         <h1 className="login-title">Sign in</h1>
         <p className="login-subtitle">
@@ -373,6 +395,7 @@ function LoginForm() {
           </>
         )}
       </div>
+      )}
       </section>
     </div>
   );

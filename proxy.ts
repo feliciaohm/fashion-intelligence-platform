@@ -81,8 +81,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(verifyUrl);
   }
 
-  // Fully authenticated -- an auth page has nothing left to do here.
-  if (path === "/login" || path.startsWith("/login/verify")) {
+  // Fully authenticated -- /login/verify (the 2FA step) has nothing left to
+  // do, so redirect away from it. /login itself is deliberately NOT
+  // redirected away anymore: it's the public marketing/overview page now,
+  // not just a sign-in form, and a signed-in visitor (including Felicia
+  // checking her own site) should still be able to see it instead of being
+  // silently bounced back into the app.
+  if (path.startsWith("/login/verify")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
