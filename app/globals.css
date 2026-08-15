@@ -1471,6 +1471,63 @@ input[type="password"]:focus {
   color: var(--color-ink-muted);
 }
 
+/* ---------- Narrative band: the "who this is for" problem statement ---------- */
+
+.marketing-narrative-band {
+  background: var(--color-bg-sunken);
+  padding: 52px 24px;
+}
+
+.marketing-narrative {
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--color-ink-secondary);
+}
+
+.marketing-narrative strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* ---------- How it works: 3 numbered steps ---------- */
+
+.marketing-steps {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.marketing-step {
+  text-align: left;
+}
+
+.marketing-step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink-secondary);
+  margin-bottom: 16px;
+}
+
+@media (max-width: 720px) {
+  .marketing-steps {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
 .marketing-signin {
   background: var(--color-bg-sunken);
   border-top: 1px solid var(--color-border);

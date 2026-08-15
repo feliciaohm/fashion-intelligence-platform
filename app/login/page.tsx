@@ -239,6 +239,47 @@ function LoginForm() {
         </div>
       </section>
 
+      <div className="marketing-narrative-band">
+        <p className="marketing-narrative">
+          Most brand analytics tools are built for paid-media budgets and ad platforms. Brands that grow through{" "}
+          <strong>gifting, influencer relationships, and word of mouth</strong>{" "}
+          don&apos;t get the same visibility — there&apos;s no dashboard that connects a gifted product to the
+          visitor it actually brought in. This platform was built to close that specific gap.
+        </p>
+      </div>
+
+      <div className="marketing-section-header">
+        <span className="marketing-eyebrow-pill">How it works</span>
+        <h2 className="marketing-section-title">From raw data to a real answer, in three steps</h2>
+      </div>
+
+      <section className="marketing-steps">
+        <div className="marketing-step">
+          <div className="marketing-step-number">1</div>
+          <div className="marketing-capability-title">Connect your real data</div>
+          <div className="marketing-capability-desc">
+            Shopify, Klaviyo, GA4, and your gifting/posting logs in Google Sheets — no manual spreadsheet work,
+            no re-entering numbers by hand.
+          </div>
+        </div>
+        <div className="marketing-step">
+          <div className="marketing-step-number">2</div>
+          <div className="marketing-capability-title">Ask, in plain language</div>
+          <div className="marketing-capability-desc">
+            &quot;Which influencer gave the highest ROI?&quot; The Command Center answers from your real BigQuery
+            data — if it can&apos;t answer honestly, it says so instead of guessing.
+          </div>
+        </div>
+        <div className="marketing-step">
+          <div className="marketing-step-number">3</div>
+          <div className="marketing-capability-title">Save it, share it, act on it</div>
+          <div className="marketing-capability-desc">
+            Turn any real answer into a saved, named dashboard in one click — ready to open in a meeting or drop
+            straight into a deck.
+          </div>
+        </div>
+      </section>
+
       <p className="marketing-trust">Real BigQuery data. No fabricated numbers, ever.</p>
 
       <section id="signin" className="marketing-signin">
