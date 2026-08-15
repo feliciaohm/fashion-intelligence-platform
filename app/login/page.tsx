@@ -67,6 +67,45 @@ function LinkIcon() {
   );
 }
 
+// Simplified, hand-drawn representations of each real integration -- not
+// the official brand marks (no license to reproduce those here), just
+// enough of a recognizable shape to label each real tool the platform
+// actually connects to.
+function ShopifyMarkIcon() {
+  return (
+    <IconSvg>
+      <path d="M6 7.5l1-2.8c.3-.8.9-1.2 1.6-1.2.5 0 .9.2 1.2.5" />
+      <path d="M5.5 7.8L4 16.5l9.5.8L15 7.2l-2-.4" />
+      <path d="M9.5 5c1.8-.3 2.7.3 3 1.6" strokeDasharray="0.5 1.8" />
+      <path d="M8.5 10.5c-.6-.3-1.6-.2-1.6.6 0 1 2.6.6 2.6 2.2 0 1-.9 1.4-1.7 1.1" />
+    </IconSvg>
+  );
+}
+function KlaviyoMarkIcon() {
+  return (
+    <IconSvg>
+      <path d="M10 3l1.6 5-4.8 1.7L10 17l-1.6-5 4.8-1.7L10 3z" />
+    </IconSvg>
+  );
+}
+function GA4MarkIcon() {
+  return (
+    <IconSvg>
+      <rect x="4" y="10" width="3" height="6.5" rx="0.8" />
+      <rect x="8.5" y="6" width="3" height="10.5" rx="0.8" />
+      <rect x="13" y="3" width="3" height="13.5" rx="0.8" />
+    </IconSvg>
+  );
+}
+function SheetsMarkIcon() {
+  return (
+    <IconSvg>
+      <rect x="4" y="3" width="12" height="14" rx="1" />
+      <path d="M4 8h12M4 12.5h12M9 3v14" />
+    </IconSvg>
+  );
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -292,6 +331,36 @@ function LoginForm() {
           </div>
         </div>
       </section>
+
+      <div className="marketing-integrations-panel">
+        <div className="marketing-integrations-title">Connect your real data automatically</div>
+        <div className="marketing-integrations-grid">
+          <div className="marketing-integration-row">
+            <span className="marketing-integration-icon">
+              <ShopifyMarkIcon />
+            </span>
+            <span className="marketing-integration-label">Shopify</span>
+          </div>
+          <div className="marketing-integration-row">
+            <span className="marketing-integration-icon">
+              <KlaviyoMarkIcon />
+            </span>
+            <span className="marketing-integration-label">Klaviyo</span>
+          </div>
+          <div className="marketing-integration-row">
+            <span className="marketing-integration-icon">
+              <GA4MarkIcon />
+            </span>
+            <span className="marketing-integration-label">Google Analytics</span>
+          </div>
+          <div className="marketing-integration-row">
+            <span className="marketing-integration-icon">
+              <SheetsMarkIcon />
+            </span>
+            <span className="marketing-integration-label">Google Sheets</span>
+          </div>
+        </div>
+      </div>
 
       <p className="marketing-trust">Real BigQuery data. No fabricated numbers, ever.</p>
 

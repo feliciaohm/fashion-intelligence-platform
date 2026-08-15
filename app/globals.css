@@ -1588,6 +1588,74 @@ input[type="password"]:focus {
   }
 }
 
+/* ---------- Integrations showcase ("Connect your daily tools
+   automatically" reference) -- the 4 real integrations this platform
+   actually has, each with its own icon + label, not just summarized in
+   a single capability card. ---------- */
+
+.marketing-integrations-panel {
+  max-width: 1000px;
+  margin: 0 auto 60px;
+  padding: 32px;
+  background: var(--color-bg-sunken);
+  border-radius: 16px;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.marketing-integrations-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-ink);
+  line-height: 1.4;
+}
+
+.marketing-integrations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.marketing-integration-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.marketing-integration-icon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--color-bg-sunken);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink);
+}
+
+.marketing-integration-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+@media (max-width: 720px) {
+  .marketing-integrations-panel {
+    grid-template-columns: 1fr;
+    padding: 24px 20px;
+  }
+  .marketing-integrations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .marketing-trust {
   text-align: center;
   padding: 0 24px 60px;
