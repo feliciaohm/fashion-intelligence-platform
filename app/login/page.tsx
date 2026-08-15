@@ -76,11 +76,75 @@ function LoginForm() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-mark">
-        <div className="login-mark-glyph" />
-        <span className="login-mark-text">Fashion Intelligence Platform</span>
-      </div>
+    <div className="marketing-page">
+      <nav className="marketing-nav">
+        <div className="login-mark" style={{ marginBottom: 0 }}>
+          <div className="login-mark-glyph" />
+          <span className="login-mark-text">Fashion Intelligence Platform</span>
+        </div>
+        <div className="marketing-nav-links">
+          <a href="#capabilities">Capabilities</a>
+          <a href="#signin">Log in</a>
+          <a
+            className="marketing-cta"
+            href="mailto:feliciaohm@gmail.com?subject=Fashion%20Intelligence%20Platform%20%E2%80%94%20Walkthrough%20request"
+          >
+            Request a walkthrough
+          </a>
+        </div>
+      </nav>
+
+      <section className="marketing-hero">
+        <div className="marketing-hero-eyebrow">Fashion Intelligence Platform</div>
+        <div className="marketing-hero-line">Brand intelligence</div>
+        <div className="marketing-hero-line marketing-hero-line--strong">done with real data.</div>
+        <p className="marketing-hero-sub">
+          Finance, product, and influencer intelligence for luxury brands — gifting ROI,
+          visitor attribution, and dashboards built in seconds, all from data you already have.
+        </p>
+        <a
+          className="marketing-cta"
+          href="mailto:feliciaohm@gmail.com?subject=Fashion%20Intelligence%20Platform%20%E2%80%94%20Walkthrough%20request"
+        >
+          Request a walkthrough
+        </a>
+      </section>
+
+      <section id="capabilities" className="marketing-capabilities">
+        <div className="marketing-capability-card">
+          <div className="marketing-capability-title">Visitor Journey</div>
+          <div className="marketing-capability-desc">
+            See exactly which influencer post, gift, or campaign drove a real site visit —
+            timing-based attribution, not guesswork.
+          </div>
+        </div>
+        <div className="marketing-capability-card">
+          <div className="marketing-capability-title">Gifting ROI</div>
+          <div className="marketing-capability-desc">
+            Cross-match your gifting log against posting activity and see real revenue and
+            ROI per influencer, updated live from Google Sheets.
+          </div>
+        </div>
+        <div className="marketing-capability-card">
+          <div className="marketing-capability-title">AI-Generated Dashboards</div>
+          <div className="marketing-capability-desc">
+            Describe the dashboard you want in plain language and get one built in seconds —
+            every number still real, never fabricated.
+          </div>
+        </div>
+        <div className="marketing-capability-card">
+          <div className="marketing-capability-title">Real Integrations</div>
+          <div className="marketing-capability-desc">
+            Connects to Shopify, Klaviyo, GA4, and Google Sheets — one platform instead of
+            five disconnected tools.
+          </div>
+        </div>
+      </section>
+
+      <p className="marketing-trust">Real BigQuery data. No fabricated numbers, ever.</p>
+
+      <section id="signin" className="marketing-signin">
+        <div className="marketing-signin-eyebrow">Already have access?</div>
 
       <div className="login-card">
         <h1 className="login-title">Sign in</h1>
@@ -170,6 +234,7 @@ function LoginForm() {
           </>
         )}
       </div>
+      </section>
     </div>
   );
 }
