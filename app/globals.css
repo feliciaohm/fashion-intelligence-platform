@@ -17,16 +17,16 @@
   --status-good: #2e7d32;
   --status-critical: #b3261e;
 
-  /* Sidebar: white, like every reference image actually shows (Venture,
-     Kravio, the campaign builder) -- none of them have a dark sidebar.
-     Kept as its own token set (not just reusing --color-* directly) so
-     the one filled "active" accent block can stay a deliberate near-black
-     without redefining what "ink" means everywhere else. */
-  --nav-bg: #ffffff;
+  /* Sidebar: a soft light-gray canvas (Kravio reference), not pure white --
+     the active nav item is a WHITE pill, which needs a canvas one step
+     darker than white to actually read as "raised" against it. None of
+     the references have a dark sidebar (that was the earlier mistake). */
+  --nav-bg: #f4f3f1;
+  --nav-active-bg: #ffffff;
   --nav-ink: #17140f;
-  --nav-ink-muted: #918b7d;
-  --nav-border: #e6e3dc;
-  --nav-hover-bg: #f4f3f0;
+  --nav-ink-muted: #8f897b;
+  --nav-border: #e7e4dd;
+  --nav-hover-bg: #eae7e0;
 
   --nav-width: 240px;
 }
@@ -85,39 +85,59 @@ a {
   flex-shrink: 0;
   background: var(--nav-bg);
   border-right: 1px solid var(--nav-border);
-  padding: 26px 22px;
+  padding: 20px 16px 14px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 14px;
   position: sticky;
   top: 0;
   height: 100vh;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+.app-nav-brand-row {
+  display: block;
 }
 
 .app-nav-brand {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--nav-ink);
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--nav-border);
+  line-height: 1.3;
 }
 
 .app-nav-brand span {
   display: block;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 400;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--nav-ink-muted);
-  margin-top: 6px;
+}
+
+/* Search lives in the sidebar now (Kravio reference), full width instead
+   of the header's fixed/expanding width. */
+.app-nav .global-search,
+.app-nav .global-search.expanded {
+  width: 100%;
+}
+
+.app-nav .global-search-input {
+  background: var(--nav-hover-bg);
+  border-color: var(--nav-border);
+  color: var(--nav-ink);
+}
+
+.app-nav .global-search-input::placeholder {
+  color: var(--nav-ink-muted);
+}
+
+.app-nav .global-search-icon {
+  color: var(--nav-ink-muted);
 }
 
 .role-switcher {
   position: relative;
-  margin-top: -12px;
 }
 
 .role-switcher-trigger {
@@ -167,7 +187,7 @@ a {
   left: 0;
   right: 0;
   z-index: 30;
-  background: var(--nav-bg);
+  background: var(--nav-active-bg);
   border: 1px solid var(--color-border-strong);
   box-shadow: 0 8px 24px rgba(23, 20, 15, 0.1);
   padding: 6px;
@@ -213,8 +233,8 @@ a {
 
 .app-nav-command {
   display: block;
-  margin-top: -16px;
-  padding: 12px 14px;
+  border-radius: 8px;
+  padding: 10px 12px;
   background: var(--nav-hover-bg);
   border: 1px solid var(--nav-border);
   font-size: 13px;
@@ -245,7 +265,22 @@ a {
 
 .app-nav-command.active,
 .app-nav-command.active span {
-  color: var(--nav-bg);
+  color: var(--nav-active-bg);
+}
+
+/* Scrolls independently -- brand/search/role-switcher/Command Center
+   stay pinned at top, the user footer stays pinned at bottom, only the
+   page list scrolls in between (Kravio reference). */
+.app-nav-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1px solid var(--nav-border);
 }
 
 .app-nav-section {
@@ -257,28 +292,113 @@ a {
 .app-nav-section-label {
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: var(--nav-ink-muted);
-  padding: 0 0 8px;
+  padding: 0 8px 6px;
 }
 
 .app-nav-link {
-  padding: 6px 0 6px 10px;
-  border-left: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: 7px;
   font-size: 13px;
   letter-spacing: 0.01em;
   color: var(--nav-ink-muted);
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.app-nav-link svg {
+  flex-shrink: 0;
 }
 
 .app-nav-link:hover {
   color: var(--nav-ink);
+  background: var(--nav-hover-bg);
 }
 
 .app-nav-link.active {
   color: var(--nav-ink);
   font-weight: 600;
-  border-left-color: var(--nav-ink);
+  background: var(--nav-active-bg);
+  box-shadow: 0 1px 3px rgba(23, 20, 15, 0.1), 0 0 0 1px var(--nav-border);
+}
+
+/* ---------- User footer (pinned at bottom, Kravio reference) ---------- */
+
+.app-nav-user {
+  position: relative;
+  flex-shrink: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--nav-border);
+}
+
+.app-nav-user-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background 0.12s ease;
+}
+
+.app-nav-user-trigger:hover {
+  background: var(--nav-hover-bg);
+}
+
+.app-nav-user-avatar {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--nav-ink);
+  color: var(--nav-active-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.app-nav-user-email {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-size: 12px;
+  color: var(--nav-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-nav-user-overlay {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: var(--nav-active-bg);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: 0 8px 24px rgba(23, 20, 15, 0.12);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-nav-user-overlay-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: var(--nav-ink);
+  border-radius: 5px;
+}
+
+.app-nav-user-overlay-row:hover {
+  background: var(--nav-hover-bg);
 }
 
 .app-main {
@@ -295,17 +415,11 @@ a {
 
 /* ---------- Header (search, mobile menu) ---------- */
 
+/* Hidden on desktop -- search moved into the sidebar, this only exists
+   for the mobile hamburger toggle (shown again in the mobile media query
+   below). */
 .app-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 64px;
-  background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
+  display: none;
 }
 
 .global-search {
@@ -406,20 +520,13 @@ a {
   }
 
   .app-header {
-    justify-content: space-between;
+    display: flex;
+    align-items: center;
     padding: 14px 20px;
   }
 
   .app-main-content {
     padding: 32px 20px;
-  }
-
-  .global-search {
-    width: 160px;
-  }
-
-  .global-search.expanded {
-    width: min(320px, calc(100vw - 96px));
   }
 
   .app-nav {

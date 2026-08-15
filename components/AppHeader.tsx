@@ -1,9 +1,12 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import GlobalSearch from "@/components/GlobalSearch";
 import { useMobileNav } from "@/lib/mobile-nav-context";
 
+// Search moved into the sidebar (matching the Kravio reference's layout --
+// search lives at the top of the nav, not a separate top bar). This header
+// now only exists for the mobile hamburger toggle; on desktop it renders
+// nothing and takes up no space (see .app-header's base display:none).
 export default function AppHeader() {
   const pathname = usePathname();
   const { toggle } = useMobileNav();
@@ -21,7 +24,6 @@ export default function AppHeader() {
           <line x1="2" y1="13.5" x2="16" y2="13.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
       </button>
-      <GlobalSearch />
     </div>
   );
 }
