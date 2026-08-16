@@ -2906,6 +2906,113 @@ function GmroiCalculator() {
   );
 }
 
+function StoreTrafficCalculator() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+
+  async function run() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/decision/store-traffic");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setResult(json);
+    } catch (err) {
+      setError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const statusColor: Record<string, string> = {
+    strong: "var(--status-good)",
+    adequate: "var(--color-ink)",
+    attention: "var(--status-critical)",
+  };
+
+  return (
+    <div className="panel">
+      <h2 className="section-title" style={{ fontSize: 15, marginBottom: 4 }}>26. Store Traffic &amp; Conversion</h2>
+      <p className="text-muted" style={{ marginBottom: 16 }}>
+        Real footfall, transactions, and conversion rate by store — physical retail traffic, not web visitors.
+        Flags any store converting well below the rest of the fleet this period.
+      </p>
+
+      <div className="calc-layout">
+        <div className="calc-form">
+          <button type="button" className="btn" onClick={run} disabled={loading}>
+            {loading ? "Calculating…" : "Run Analysis"}
+          </button>
+        </div>
+
+        <div className="calc-result">
+          {error && <p style={{ color: "var(--status-critical)", fontSize: 12.5 }}>{error}</p>}
+          {!result && !error && <p className="calc-result-placeholder">Run to see real footfall and conversion by store, {" "}latest period.</p>}
+          {result && result.stores.length === 0 && <p className="calc-result-placeholder">No store performance data found.</p>}
+          {result && result.stores.length > 0 && (
+            <>
+              <div className="stat-grid" style={{ marginBottom: 16 }}>
+                <div className="stat-card">
+                  <div className="stat-label">Total Footfall — {result.period}</div>
+                  <div className="stat-value">{result.totalFootfall.toLocaleString()}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Blended Conversion</div>
+                  <div className="stat-value">{result.blendedConversionRatePct}%</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Avg. Transaction Value</div>
+                  <div className="stat-value">€{result.avgTransactionValue}</div>
+                </div>
+              </div>
+
+              <div className="data-table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Store</th>
+                      <th>Footfall</th>
+                      <th>Transactions</th>
+                      <th>Conversion</th>
+                      <th>ATV</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.stores.map((s: any) => (
+                      <tr key={s.storeName}>
+                        <td>{s.storeName}</td>
+                        <td>{s.footfall.toLocaleString()}</td>
+                        <td>{s.transactions.toLocaleString()}</td>
+                        <td style={{ fontWeight: 600, color: statusColor[s.status] }}>{s.conversionRatePct}%</td>
+                        <td>€{s.avgTransactionValue}</td>
+                        <td style={{ color: statusColor[s.status], textTransform: "capitalize" }}>{s.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <DataQualityIndicator dataPoints={result.stores.length} />
+            </>
+          )}
+        </div>
+      </div>
+
+      {result && result.stores.length > 0 && (
+        <Methodology
+          lines={[
+            `Footfall, transactions, conversion rate, and average transaction value are all real columns in store_performance, for the latest real period (${result.period}) — physical store data, unrelated to Visitor Journey's web attribution.`,
+            `Blended conversion = total transactions ÷ total footfall across all stores this period.`,
+            `"Attention" = a store's own conversion rate more than 20% below the blended average across this platform's own stores this period — an internal comparison, not a claimed external industry benchmark.`,
+          ]}
+        />
+      )}
+    </div>
+  );
+}
+
 type DiTab = "financial" | "market" | "customer" | "risk";
 
 const DI_TABS: { id: DiTab; label: string }[] = [
@@ -2915,7 +3022,7 @@ const DI_TABS: { id: DiTab; label: string }[] = [
   { id: "risk", label: "Risk & Operations" },
 ];
 
-const DI_TAB_COUNTS: Record<DiTab, number> = { financial: 7, market: 6, customer: 6, risk: 6 };
+const DI_TAB_COUNTS: Record<DiTab, number> = { financial: 7, market: 6, customer: 6, risk: 7 };
 
 function LinkOutCard({ href, title, description }: { href: string; title: string; description: string }) {
   return (
@@ -3054,6 +3161,7 @@ export default function DecisionIntelligencePage() {
           <RevenueDecompositionCalculator />
           <EoqCalculator />
           <SellThroughRateCalculator />
+          <StoreTrafficCalculator />
           <LinkOutCard
             href="/value-drivers"
             title="Sensitivity Tornado Chart →"
