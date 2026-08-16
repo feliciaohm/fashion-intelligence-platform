@@ -12,7 +12,8 @@ export type RoleId =
   | "head_of_retail"
   | "head_of_wholesale"
   | "finance_intern"
-  | "marketing_manager";
+  | "marketing_manager"
+  | "retail_operations_manager";
 
 export interface RoleModule {
   href: string;
@@ -97,6 +98,21 @@ export const ROLES: RoleConfig[] = [
       { href: "/products", name: "Products", desc: "Full catalogue, retail + ecommerce + influencer performance joined." },
       { href: "/returns", name: "Returns", desc: "Refunds by reason, linked back to the originating campaign." },
       { href: "/customers", name: "Customer Segments", desc: "Every customer, segmented by value and behavior." },
+    ],
+  },
+  {
+    id: "retail_operations_manager",
+    label: "Retail Operations Manager",
+    tagline: "Store KPIs, vendors, inventory, and cost — the operational side of retail.",
+    modules: [
+      { href: "/stores", name: "Store Performance", desc: "Revenue, staff cost, rent, and conversion by store and city — the operational KPIs reviewed store by store." },
+      { href: "/suppliers", name: "Supplier Intelligence", desc: "Vendor scorecards, risk alerts, and spend — the operational vendor relationships a retail ops role manages." },
+      { href: "/cost-allocation", name: "Cost Allocation Engine", desc: "True store profitability once shared overhead is allocated with activity-based costing." },
+      { href: "/returns", name: "Returns", desc: "Refunds by reason, linked back to the source — the delivery/inventory issues a retail ops role troubleshoots." },
+      { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Includes the reorder/EOQ calculator — real replenishment math fed by real supplier lead times, not a spreadsheet guess." },
+      { href: "/product-lifecycle", name: "Product Lifecycle", desc: "Cost, retail, and wholesale price by product, by season — feeds product launch and price-change planning." },
+      { href: "/pricing", name: "Pricing Intelligence", desc: "Margin at every price point — the data behind a price-change decision." },
+      { href: "/data-quality", name: "Data Quality", desc: "Duplicates, nulls, outliers, and normalization checks — the systems-reliability side of retail operations." },
     ],
   },
   {
