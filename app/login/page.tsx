@@ -181,9 +181,6 @@ function LoginForm() {
   return (
     <div className="marketing-page">
       <nav className="marketing-nav">
-        <div className="login-mark" style={{ marginBottom: 0 }}>
-          <div className="login-mark-glyph" />
-        </div>
         <div className="marketing-nav-links">
           <a href="#capabilities">Capabilities</a>
           <a href="#signin">Log in</a>

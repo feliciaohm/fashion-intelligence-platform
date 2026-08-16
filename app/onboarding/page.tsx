@@ -32,10 +32,6 @@ export default function OnboardingPage() {
 
   return (
     <div className="login-page">
-      <div className="login-mark">
-        <div className="login-mark-glyph" />
-      </div>
-
       <div className="onboarding-card">
         <h1 className="login-title">What is your primary role?</h1>
         <p className="login-subtitle" style={{ marginBottom: 28 }}>

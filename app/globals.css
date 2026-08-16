@@ -1321,7 +1321,7 @@ input[type="password"]:focus {
 .marketing-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-wrap: wrap;
   row-gap: 12px;
   max-width: 1080px;
@@ -1778,39 +1778,6 @@ input[type="password"]:focus {
   justify-content: center;
   padding: 40px 24px;
   background: var(--color-bg);
-}
-
-.login-mark {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  margin-bottom: 56px;
-}
-
-.login-mark-glyph {
-  width: 26px;
-  height: 26px;
-  background: var(--color-ink);
-  position: relative;
-  flex-shrink: 0;
-}
-
-.login-mark-glyph::after {
-  content: "";
-  position: absolute;
-  right: -4px;
-  bottom: -4px;
-  width: 13px;
-  height: 13px;
-  background: var(--color-accent);
-}
-
-.login-mark-text {
-  font-size: 14.5px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--color-ink);
-  white-space: nowrap;
 }
 
 .login-card {
