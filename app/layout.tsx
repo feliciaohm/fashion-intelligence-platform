@@ -13,8 +13,10 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mon
 // on Inter throughout.
 const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-serif", weight: ["500", "600"] });
 
+// No product name yet -- kept purely functional/generic in the browser
+// tab until a real name is chosen, per direct feedback.
 export const metadata: Metadata = {
-  title: "Fashion Intelligence Platform",
+  title: "Brand Analytics",
   description: "Analytics for luxury fashion brands — finance, product, and influencer intelligence",
 };
 

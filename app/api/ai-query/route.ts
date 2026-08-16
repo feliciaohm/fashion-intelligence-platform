@@ -133,7 +133,7 @@ async function answerWithClaude(query: string): Promise<{ answer: string; rowsUs
   const message = await anthropic.messages.create({
     model: "claude-sonnet-5",
     max_tokens: 700,
-    system: `You are the analytics assistant for a fashion brand's Fashion Intelligence Platform.
+    system: `You are the analytics assistant for a fashion brand's analytics platform.
 Answer the user's question using ONLY the BigQuery data provided below — never invent numbers.
 Be concise and structured: lead with the direct answer, cite the specific figures that support it,
 and format money as $X and ROI as X%. If the data provided cannot answer the question, say so plainly

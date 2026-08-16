@@ -62,7 +62,6 @@ function VerifyForm() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <div className="login-eyebrow">Fashion Intelligence Platform</div>
         <h1 className="login-title">Verify it's you</h1>
         <p className="login-subtitle">
           Enter the 6-digit code from your authenticator app to finish signing in.

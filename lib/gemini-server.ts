@@ -91,7 +91,7 @@ export async function answerWithGemini(query: string, groundingContext: string):
     model: ANSWER_MODEL,
     contents: query,
     config: {
-      systemInstruction: `You are the analytics assistant for a fashion brand's Fashion Intelligence Platform.
+      systemInstruction: `You are the analytics assistant for a fashion brand's analytics platform.
 Answer the user's question using ONLY the data provided below — never invent numbers.
 Be concise and structured: lead with the direct answer, cite the specific figures that support it,
 and format money as €X and ROI as X%. If the data provided cannot answer the question, say so plainly

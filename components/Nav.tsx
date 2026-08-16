@@ -185,13 +185,9 @@ export default function Nav() {
     <>
       {mobileOpen && <div className="mobile-nav-backdrop" onClick={closeMobileNav} />}
       <nav className={`app-nav${mobileOpen ? " mobile-open" : ""}`}>
-      <Link href="/" className="app-nav-brand-row">
-        <span className="app-nav-brand">
-          Fashion Intelligence
-          <span>Platform</span>
-        </span>
-      </Link>
-
+      {/* No product name here yet -- removed per direct feedback until a
+          real name is chosen. <GlobalSearch /> is now the top of the
+          sidebar instead of a wordmark. */}
       <GlobalSearch />
 
       {roleLabel && (

@@ -54,7 +54,7 @@ function buildDigestText(data: any): string {
       : "No rules triggered this month — nothing above threshold."
   );
   lines.push("");
-  lines.push("— Generated automatically from real BigQuery data by the Fashion Intelligence Platform.");
+  lines.push("— Generated automatically from real BigQuery data.");
 
   return lines.join("\n");
 }

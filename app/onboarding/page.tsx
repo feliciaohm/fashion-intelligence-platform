@@ -34,7 +34,6 @@ export default function OnboardingPage() {
     <div className="login-page">
       <div className="login-mark">
         <div className="login-mark-glyph" />
-        <span className="login-mark-text">Fashion Intelligence Platform</span>
       </div>
 
       <div className="onboarding-card">

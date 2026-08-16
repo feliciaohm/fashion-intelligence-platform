@@ -61,7 +61,7 @@ function buildReportText(latestPeriod: string, costCenters: any[], channels: any
   lines.push("TALKING POINTS");
   narrative.forEach((n) => lines.push(`• ${n}`));
   lines.push("");
-  lines.push("— Generated automatically from real BigQuery data. Fashion Intelligence Platform.");
+  lines.push("— Generated automatically from real BigQuery data.");
 
   return lines.join("\n");
 }

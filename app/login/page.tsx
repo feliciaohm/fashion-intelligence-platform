@@ -183,14 +183,13 @@ function LoginForm() {
       <nav className="marketing-nav">
         <div className="login-mark" style={{ marginBottom: 0 }}>
           <div className="login-mark-glyph" />
-          <span className="login-mark-text">Fashion Intelligence Platform</span>
         </div>
         <div className="marketing-nav-links">
           <a href="#capabilities">Capabilities</a>
           <a href="#signin">Log in</a>
           <a
             className="marketing-cta"
-            href="mailto:feliciaohm@gmail.com?subject=Fashion%20Intelligence%20Platform%20%E2%80%94%20Walkthrough%20request"
+            href="mailto:feliciaohm@gmail.com?subject=Walkthrough%20request"
           >
             Request a walkthrough
           </a>
@@ -198,7 +197,6 @@ function LoginForm() {
       </nav>
 
       <section className="marketing-hero">
-        <div className="marketing-hero-eyebrow">Fashion Intelligence Platform</div>
         <div className="marketing-hero-line">Brand intelligence</div>
         <div className="marketing-hero-line marketing-hero-line--strong">done with real data.</div>
         <p className="marketing-hero-sub">
@@ -207,7 +205,7 @@ function LoginForm() {
         </p>
         <a
           className="marketing-cta"
-          href="mailto:feliciaohm@gmail.com?subject=Fashion%20Intelligence%20Platform%20%E2%80%94%20Walkthrough%20request"
+          href="mailto:feliciaohm@gmail.com?subject=Walkthrough%20request"
         >
           Request a walkthrough
         </a>
@@ -242,7 +240,7 @@ function LoginForm() {
 
       <div className="marketing-section-header">
         <span className="marketing-eyebrow-pill">Capabilities</span>
-        <h2 className="marketing-section-title">Intelligence, not more dashboards to babysit</h2>
+        <h2 className="marketing-section-title">Real-time analytics, computed automatically</h2>
         <p className="marketing-section-sub">
           Four real capabilities, built from the data you already have — nothing here is a mockup.
         </p>

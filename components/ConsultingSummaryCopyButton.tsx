@@ -27,7 +27,7 @@ function buildSummaryText(data: any): string {
   });
   lines.push("");
 
-  lines.push("— Generated automatically from real BigQuery data. Fashion Intelligence Platform.");
+  lines.push("— Generated automatically from real BigQuery data.");
   return lines.join("\n");
 }
 
