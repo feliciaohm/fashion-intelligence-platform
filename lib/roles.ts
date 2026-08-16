@@ -112,6 +112,7 @@ export const ROLES: RoleConfig[] = [
       { href: "/decision-intelligence", name: "Decision Intelligence", desc: "Includes the reorder/EOQ calculator — real replenishment math fed by real supplier lead times, not a spreadsheet guess." },
       { href: "/product-lifecycle", name: "Product Lifecycle", desc: "Cost, retail, and wholesale price by product, by season — feeds product launch and price-change planning." },
       { href: "/pricing", name: "Pricing Intelligence", desc: "Margin at every price point — the data behind a price-change decision." },
+      { href: "/custom-data", name: "Custom Data", desc: "Upload a real export from Sitoo, iD Cloud, Omnium, Qlik, or any store system — no live connection required to start using it." },
       { href: "/data-quality", name: "Data Quality", desc: "Duplicates, nulls, outliers, and normalization checks — the systems-reliability side of retail operations." },
     ],
   },
@@ -217,7 +218,8 @@ export const ALL_MODULES: { group: string; items: RoleModule[] }[] = [
     group: "Platform",
     items: [
       { href: "/data-quality", name: "Data Quality", desc: "Duplicate detection, null handling, outlier review, and normalization — the foundation every calculation runs on." },
-      { href: "/settings", name: "Settings", desc: "Connect real data sources — Shopify, Excel, and more." },
+      { href: "/custom-data", name: "Custom Data", desc: "Upload any spreadsheet — a Sitoo, iD Cloud, Omnium, or Qlik export, or any Excel/CSV file — and browse it back, exactly as uploaded." },
+      { href: "/settings", name: "Settings", desc: "Connect real data sources — Shopify, Klaviyo, GA4, Google Sheets, and more." },
     ],
   },
 ];

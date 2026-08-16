@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import ExcelUploadZone from "@/components/ExcelUploadZone";
 import GoogleSheetsImportZone from "@/components/GoogleSheetsImportZone";
 import RelatedPages from "@/components/RelatedPages";
@@ -577,6 +578,29 @@ export default function SettingsPage() {
         </div>
       )}
 
+      <div className="section panel">
+        <h2 className="section-title" style={{ marginBottom: 10 }}>Requested integrations</h2>
+        <p className="text-muted" style={{ marginBottom: 16, fontSize: 12.5, lineHeight: 1.6 }}>
+          Sitoo, iD Cloud, Omnium, and Qlik don&apos;t have live connections here yet — each needs real API access
+          from an actual account on that system, which this platform doesn&apos;t have. Until then, export your
+          data from any of these and bring it in through{" "}
+          <Link href="/custom-data" style={{ textDecoration: "underline" }}>Custom Data</Link> — that already
+          accepts a file from any source, no live connection required.
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {["Sitoo", "iD Cloud", "Omnium", "Qlik"].map((name) => (
+            <span
+              key={name}
+              className="badge"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              {name}
+              <span className="text-muted" style={{ fontSize: 9.5 }}>not connected</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
       <div className="section">
         <h2 className="section-title">Security</h2>
         <p className="section-subtitle">Your account's sign-in security.</p>
@@ -590,7 +614,7 @@ export default function SettingsPage() {
         </>
       )}
 
-      <RelatedPages hrefs={["/intelligence", "/executive", "/dashboard"]} />
+      <RelatedPages hrefs={["/custom-data", "/intelligence", "/executive"]} />
     </div>
   );
 }

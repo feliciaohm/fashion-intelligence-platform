@@ -100,6 +100,7 @@ const links = [
     section: "Platform",
     items: [
       { href: "/data-quality", label: "Data Quality", icon: ShieldCheckIcon },
+      { href: "/custom-data", label: "Custom Data", icon: DocumentIcon },
       { href: "/settings", label: "Settings", icon: GearIcon },
     ],
   },
