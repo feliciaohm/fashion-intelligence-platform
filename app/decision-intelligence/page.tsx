@@ -3013,6 +3013,108 @@ function StoreTrafficCalculator() {
   );
 }
 
+function SupplierPaymentCalculator() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+
+  async function run() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/decision/supplier-payment");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.details || json.error);
+      setResult(json);
+    } catch (err) {
+      setError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="panel">
+      <h2 className="section-title" style={{ fontSize: 15, marginBottom: 4 }}>27. Supplier Payment Terms &amp; Working Capital</h2>
+      <p className="text-muted" style={{ marginBottom: 16 }}>
+        Real payment terms per supplier ("Net 30", "Net 45"…), parsed into Days Payable Outstanding and the
+        working capital it implies — previously just displayed as text, never computed.
+      </p>
+
+      <div className="calc-layout">
+        <div className="calc-form">
+          <button type="button" className="btn" onClick={run} disabled={loading}>
+            {loading ? "Calculating…" : "Run Analysis"}
+          </button>
+        </div>
+
+        <div className="calc-result">
+          {error && <p style={{ color: "var(--status-critical)", fontSize: 12.5 }}>{error}</p>}
+          {!result && !error && <p className="calc-result-placeholder">Run to see real DPO and working capital by supplier.</p>}
+          {result && (
+            <>
+              <div className="stat-grid" style={{ marginBottom: 16 }}>
+                <div className="stat-card">
+                  <div className="stat-label">Total Est. Annual Spend</div>
+                  <div className="stat-value">€{result.totalAnnualSpend.toLocaleString()}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Est. Payables Balance</div>
+                  <div className="stat-value">€{result.totalPayablesBalance.toLocaleString()}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Avg. Payment Days</div>
+                  <div className="stat-value">{result.avgPaymentDays}</div>
+                </div>
+              </div>
+
+              <div className="data-table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Supplier</th>
+                      <th>Payment Terms</th>
+                      <th>Est. Annual Spend</th>
+                      <th>Est. Payables Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.suppliers.map((s: any) => (
+                      <tr key={s.supplierName}>
+                        <td>{s.supplierName}</td>
+                        <td className="text-muted" style={{ fontSize: 12.5 }}>
+                          {s.paymentTerms}
+                          {s.hasDeposit && (
+                            <span style={{ color: "var(--status-critical)" }}> — partial deposit, true benefit is less</span>
+                          )}
+                        </td>
+                        <td>€{s.estimatedAnnualSpend.toLocaleString()}</td>
+                        <td>{s.estimatedPayablesBalance !== null ? `€${s.estimatedPayablesBalance.toLocaleString()}` : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <DataQualityIndicator dataPoints={result.suppliers.length} />
+            </>
+          )}
+        </div>
+      </div>
+
+      {result && (
+        <Methodology
+          lines={[
+            `Payment days parsed from each supplier's real payment_terms string (e.g. "Net 45" → 45 days); ${result.unparsedCount > 0 ? `${result.unparsedCount} supplier(s) had an unparseable format and are excluded from the averages` : "all suppliers parsed successfully"}.`,
+            `Estimated annual spend = the same real category-COGS-split estimate already shown on the Suppliers page (real product_lifecycle COGS by category, divided evenly across suppliers in that category).`,
+            `Estimated payables balance = (annual spend ÷ 365) × payment days — the standard Days Payable Outstanding formula: how much cash is held, on average, before paying that supplier.`,
+            `A supplier with "deposit" in its terms (e.g. "50% deposit, Net 30") is flagged, not blended in — part of that payment happens upfront, so the real cash-flow benefit is smaller than the full term length suggests.`,
+          ]}
+        />
+      )}
+    </div>
+  );
+}
+
 type DiTab = "financial" | "market" | "customer" | "risk";
 
 const DI_TABS: { id: DiTab; label: string }[] = [
@@ -3022,7 +3124,7 @@ const DI_TABS: { id: DiTab; label: string }[] = [
   { id: "risk", label: "Risk & Operations" },
 ];
 
-const DI_TAB_COUNTS: Record<DiTab, number> = { financial: 7, market: 6, customer: 6, risk: 7 };
+const DI_TAB_COUNTS: Record<DiTab, number> = { financial: 8, market: 6, customer: 6, risk: 7 };
 
 function LinkOutCard({ href, title, description }: { href: string; title: string; description: string }) {
   return (
@@ -3117,6 +3219,7 @@ export default function DecisionIntelligencePage() {
           <WaccCalculator capmResult={capmResult} onResult={setWaccResult} />
           <CagrCalculator />
           <GmroiCalculator />
+          <SupplierPaymentCalculator />
         </div>
       )}
 
